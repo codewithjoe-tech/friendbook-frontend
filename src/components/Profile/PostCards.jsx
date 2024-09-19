@@ -1,0 +1,22 @@
+import React from 'react';
+
+const PostCard = ({ post }) => {
+  return (
+    <div className="max-w-md mx-3 bg-white flex rounded-xl shadow-md overflow-hidden md:max-w-2xl cursor-pointer mb-4">
+      <div className="md:flex ">
+      {post?.image && (
+  <div className="md:shrink-0">
+    <img
+      className="h-48 w-full object-cover md:w-48 md:h-full"
+      src={post.image.startsWith('http') ? post.image : `${import.meta.env.VITE_API_URL}${post.image}`}
+      alt="Post"
+    />
+  </div>
+)}
+   
+      </div>
+    </div>
+  );
+};
+
+export default PostCard;
