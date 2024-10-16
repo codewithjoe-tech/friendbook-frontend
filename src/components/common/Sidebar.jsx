@@ -31,7 +31,7 @@ import { setModalOpen } from '@/redux/Slices/PostSlice'
 
 const Sidebar = () => {
     const [isOpen, setIsOpen] = useState(false)
-    const { userImage, user } = useSelector((state) => state.users)
+    const { userImage, user,profileId } = useSelector((state) => state.users)
     const postModalOpen = useSelector((state)=>state.post.postModalOpen)
   
     
@@ -55,7 +55,7 @@ const Sidebar = () => {
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"><SearchIcon /> Search</Link>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"><RadioIcon /> Reels</Link>
                         <button onClick={()=>{console.log("Working");console.log(postModalOpen);dispatch(setModalOpen())}} className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"><PlusCircleIcon /> Create</button>
-                        <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/profile/me"> <UserCircleIcon /> Profile</Link>
+                        <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to={"/profile/"+`${profileId}`}> <UserCircleIcon /> Profile</Link>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/notifications"> <BellRingIcon /> Notifications</Link>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/messages"> <MessageCircle /> Messages</Link>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/settings"> <SettingsIcon />Settings</Link>

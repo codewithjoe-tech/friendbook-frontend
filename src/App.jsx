@@ -10,9 +10,8 @@ import HomePage from "./app/HomePage";
 import MainLayout from "./layouts/MainLayout";
 import GoogleAuth from "./app/GoogleAuth";
 import VerifyEmail from "./app/VerifyEmail";
-import Profile from "./app/Profile";
 import Settings from "./app/Settings";
-import OtherProfile from "./app/OtherProfile";
+import OtherProfile from "./app/Profiles";
 import Spinner from "./components/common/Spinner";
 
 const AdminLayout = React.lazy(()=>import("./layouts/AdminLayout"))
@@ -40,10 +39,7 @@ function App() {
                     path: "/",
                     element: <HomePage />,
                 },
-                {
-                    path:"/profile/me",
-                    element:<Profile />
-                },
+                
                 {
                     path:"/settings",
                     element:<Settings/>

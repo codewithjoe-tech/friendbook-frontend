@@ -10,6 +10,7 @@ import {  useParams } from 'react-router-dom';
 import PostCards from '@/components/Profile/PostCards';
 
 const OtherProfile = () => {
+    const access = getCookie("accessToken");
     const [userData, setUserData] = useState({
         user: null,
         userImage: null,
@@ -17,9 +18,11 @@ const OtherProfile = () => {
         is_following: null,
         followersCount: null,
         followingCount: null,
-        posts: []
+        posts_count:0
+       
     });
 
+    const [post, setPost] = useState([])
     const dispatch = useDispatch()
     const { id } = useParams();
     const { profileId, user } = useSelector((state) => state.users)
@@ -27,7 +30,7 @@ const OtherProfile = () => {
         try {
 
             const data = await dispatch(followUserThunk(id)).unwrap();
-            // console.log(data)
+ 
             setUserData({ ...userData, is_following: !userData.is_following, followersCount: userData?.is_following ? userData.followersCount - 1 : userData.followersCount + 1 })
 
 
@@ -42,7 +45,6 @@ const OtherProfile = () => {
 
 
         const fetchUserDetails = async () => {
-            const access = getCookie("accessToken");
             try {
                 const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/get/${id}`, {
                     headers: {
@@ -64,7 +66,7 @@ const OtherProfile = () => {
                     is_following: data.is_following,
                     followersCount: data.followers_count,
                     followingCount: data.following_count,
-                    posts: data.posts
+                    posts_count: data.posts_count
 
                 });
             } catch (error) {
@@ -76,12 +78,17 @@ const OtherProfile = () => {
 
 
     }, [id]);
-    useEffect(() => {
-        // console.log(profileId)
-        if (profileId == id) {
-            navigate('/profile/me')
-        }
-    }, [user])
+
+
+    const fetchPosts = async()=>{
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/posts/${id}`, {
+            headers: {
+                Authorization: `Bearer ${access}`
+            }
+        });
+    }
+
+ 
 
 
     return (
@@ -108,15 +115,15 @@ const OtherProfile = () => {
                     <div className="flex items-center mt-4">
                         <div className="flex space-x-8">
                             <div className="text-center">
-                                <span className="font-bold text-xl">162</span>
+                                <span className="font-bold text-xl">{userData?.posts_count||0}</span>
                                 <p className="text-gray-400">Posts</p>
                             </div>
                             <div className="text-center">
-                                <span className="font-bold text-xl">{userData.followingCount}</span>
+                                <span className="font-bold text-xl">{userData.followingCount||0}</span>
                                 <p className="text-gray-400">Following</p>
                             </div>
                             <div className="text-center cursor-pointer">
-                                <span className="font-bold text-xl">{userData.followersCount}</span>
+                                <span className="font-bold text-xl">{userData.followersCount||0}</span>
                                 <p className="text-gray-400">Followers</p>
                             </div>
                         </div>
@@ -137,7 +144,7 @@ const OtherProfile = () => {
                     {!userData.posts || userData.posts.length === 0 ? (
                         <p className="text-foreground/70">No Posts available</p>
                     ) : (
-                        userData.posts?.map((post, index) => <PostCards key={index} post={post} />)
+                        posts?.map((post, index) => <PostCards key={index} post={post} />)
                     )}
                 </div>
             </div>
