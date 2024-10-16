@@ -1,8 +1,8 @@
 import React from 'react';
 
-const PostCard = ({ post }) => {
+const PostCard = ({ post ,handleSetPostid }) => {
   return (
-    <div className="max-w-md mx-3 bg-white flex rounded-xl shadow-md overflow-hidden md:max-w-2xl cursor-pointer mb-4">
+    <div className="max-w-md mx-3 bg-white flex rounded-xl shadow-md overflow-hidden md:max-w-2xl cursor-pointer mb-4" onClick={()=>handleSetPostid(post.id)}>
       <div className="md:flex ">
       {post?.image && (
   <div className="md:shrink-0">

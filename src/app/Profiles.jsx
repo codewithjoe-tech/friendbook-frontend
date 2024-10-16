@@ -11,6 +11,7 @@ import PostCards from '@/components/Profile/PostCards';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { setPost } from '@/redux/Slices/UserSlice/UserSlice';
+import PostViewModal from '@/components/Profile/PostViewModal';
 
 const OtherProfile = () => {
     const access = getCookie("accessToken");
@@ -27,6 +28,17 @@ const OtherProfile = () => {
 
     const [posts, setPosts] = useState([])
     const dispatch = useDispatch()
+    const [OpenPostView, setOpenPostView] = useState(false)
+    const [PostId, setPostId] = useState('')
+    const handleOpenClose = ()=>{
+        setOpenPostView(!OpenPostView)
+    }
+
+    const handleSetPostid = (id)=>{
+        handleOpenClose()
+        setPostId(id)
+
+    }
     const { id } = useParams();
     const { profileId, user } = useSelector((state) => state.users)
     const followUser = async () => {
@@ -171,10 +183,11 @@ const OtherProfile = () => {
                     {!posts || posts.length === 0 ? (
                         <p className="text-foreground/70">No Posts available</p>
                     ) : (
-                        posts?.map((post, index) => <PostCards key={index} post={post} />)
+                        posts?.map((post, index) => <PostCards key={index} post={post}  handleSetPostid={handleSetPostid}/>)
                     )}
                 </div>
             </div>
+            <PostViewModal open={OpenPostView} onClose={handleOpenClose} postid={PostId} />
         </div>
     );
 };
