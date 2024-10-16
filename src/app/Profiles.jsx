@@ -6,8 +6,11 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import {  useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import PostCards from '@/components/Profile/PostCards';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { setPost } from '@/redux/Slices/UserSlice/UserSlice';
 
 const OtherProfile = () => {
     const access = getCookie("accessToken");
@@ -18,11 +21,11 @@ const OtherProfile = () => {
         is_following: null,
         followersCount: null,
         followingCount: null,
-        posts_count:0
-       
+        posts_count: 0
+
     });
 
-    const [post, setPost] = useState([])
+    const [posts, setPosts] = useState([])
     const dispatch = useDispatch()
     const { id } = useParams();
     const { profileId, user } = useSelector((state) => state.users)
@@ -30,7 +33,7 @@ const OtherProfile = () => {
         try {
 
             const data = await dispatch(followUserThunk(id)).unwrap();
- 
+
             setUserData({ ...userData, is_following: !userData.is_following, followersCount: userData?.is_following ? userData.followersCount - 1 : userData.followersCount + 1 })
 
 
@@ -40,7 +43,7 @@ const OtherProfile = () => {
             dispatch(showToast({ message: error.message, type: "e" }))
         }
     }
-    const navigate = useNavigate()
+  
     useEffect(() => {
 
 
@@ -79,16 +82,29 @@ const OtherProfile = () => {
 
     }, [id]);
 
+  
 
-    const fetchPosts = async()=>{
+
+
+    const fetchPosts = async () => {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/posts/${id}`, {
             headers: {
                 Authorization: `Bearer ${access}`
             }
         });
+        const res = await response.json()
+        if (response.ok){
+            setPosts(res)
+        }
     }
 
- 
+
+
+    useEffect(() => {
+      fetchPosts()
+    }, [id])
+    
+
 
 
     return (
@@ -115,33 +131,44 @@ const OtherProfile = () => {
                     <div className="flex items-center mt-4">
                         <div className="flex space-x-8">
                             <div className="text-center">
-                                <span className="font-bold text-xl">{userData?.posts_count||0}</span>
+                                <span className="font-bold text-xl">{userData?.posts_count || 0}</span>
                                 <p className="text-gray-400">Posts</p>
                             </div>
                             <div className="text-center">
-                                <span className="font-bold text-xl">{userData.followingCount||0}</span>
+                                <span className="font-bold text-xl">{userData.followingCount || 0}</span>
                                 <p className="text-gray-400">Following</p>
                             </div>
                             <div className="text-center cursor-pointer">
-                                <span className="font-bold text-xl">{userData.followersCount||0}</span>
+                                <span className="font-bold text-xl">{userData.followersCount || 0}</span>
                                 <p className="text-gray-400">Followers</p>
                             </div>
                         </div>
 
                         <div className="ml-auto space-x-4">
-                            <button onClick={followUser} className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg">
-                                {userData?.is_following ? "UnFollow" : 'Follow'}
-                            </button>
-                            <button className="bg-pink-700 text-white px-4 py-2 rounded-lg">Message</button>
+
+
+                            {
+                                (id!=profileId) ?
+                                (
+                                    <>
+                                        <Button onClick={followUser} className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg">
+                                            {userData?.is_following ? "UnFollow" : 'Follow'}
+                                        </Button>
+                                        <Button className="bg-pink-700 text-white px-4 py-2 rounded-lg">Message</Button>
+                                    </>
+                                ):(
+                                    <Link to="/settings" className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg" >Edit Profile</Link>
+                                )
+                            }
                         </div>
                     </div>
                 </div>
             </div>
-            <div className="h-[30rem] mt-10 w-[60rem] mx-auto">
+            <div className={posts.length===0 ? "h-[50rem] mt-10 w-[60rem] mx-auto":"mt-10 w-[60rem] mx-auto" }>
                 <h1 className="text-3xl">Posts</h1>
-                <div className="post-container flex w-full mt-7">
-                    
-                    {!userData.posts || userData.posts.length === 0 ? (
+                <div className="post-container flex w-full mt-7 flex-wrap">
+
+                    {!posts || posts.length === 0 ? (
                         <p className="text-foreground/70">No Posts available</p>
                     ) : (
                         posts?.map((post, index) => <PostCards key={index} post={post} />)
