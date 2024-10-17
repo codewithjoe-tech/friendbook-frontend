@@ -8,10 +8,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 const Comments = ({ postId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
-  const [replyTo, setReplyTo] = useState(null);
-  const [visibleReplies, setVisibleReplies] = useState({}); // Track which comments have visible replies
-  const [page, setPage] = useState(1); // Pagination for comments
-  const [replyPages, setReplyPages] = useState({}); // Track pagination for replies
+  const [replyTo, setReplyTo] = useState(null);  // For replies to comments
+  const [replyParent, setReplyParent] = useState(null);  // For replies to replies
+  const [visibleReplies, setVisibleReplies] = useState({});
+  const [page, setPage] = useState(1);
+  const [hasMoreComments, setHasMoreComments] = useState(false);
+  const [replyPages, setReplyPages] = useState({});
+  const [hasMoreReplies, setHasMoreReplies] = useState({});
 
   const access = getCookie('accessToken');
 
@@ -26,6 +29,7 @@ const Comments = ({ postId }) => {
       const data = await response.json();
       if (response.ok) {
         setComments((prev) => [...prev, ...data.results]);
+        setHasMoreComments(!!data.next);
       } else {
         console.log('Error fetching comments');
       }
@@ -47,10 +51,11 @@ const Comments = ({ postId }) => {
         setComments((prevComments) =>
           prevComments.map((comment) =>
             comment.id === commentId
-              ? { ...comment, replies: [...(comment.replies || []), ...data.results] } // Append new replies
+              ? { ...comment, replies: [...(comment.replies || []), ...data.results] }
               : comment
           )
         );
+        setHasMoreReplies((prev) => ({ ...prev, [commentId]: !!data.next }));
       } else {
         console.log('Error fetching replies');
       }
@@ -63,13 +68,19 @@ const Comments = ({ postId }) => {
     fetchComments();
   }, [postId]);
 
-  const handleReply = (comment) => {
+  const handleReply = (comment, isReplyToReply = false) => {
     setReplyTo(comment);
+    if (isReplyToReply) {
+      setReplyParent(comment);  // This handles replies to replies
+    } else {
+      setReplyParent(null);  // Clear out replyParent if replying to a top-level comment
+    }
     setNewComment(`@${comment.user} `);
   };
 
   const cancelReply = () => {
     setReplyTo(null);
+    setReplyParent(null);
     setNewComment('');
   };
 
@@ -77,14 +88,23 @@ const Comments = ({ postId }) => {
     if (!newComment.trim()) return;
 
     try {
-      const endpoint = replyTo
-        ? `${import.meta.env.VITE_API_URL}/api/profile/comments/reply/${replyTo.id}`
-        : `${import.meta.env.VITE_API_URL}/api/profile/comments/${postId}`;
-      const method = 'POST';
-      const bodyContent = { content: newComment };
+      let endpoint = `${import.meta.env.VITE_API_URL}/api/profile/comments/${postId}`;
+      let bodyContent = { content: newComment };
+
+      if (replyTo) {
+        if (replyParent) {
+          // Replying to a reply
+          endpoint = `${import.meta.env.VITE_API_URL}/api/profile/comments/reply-to-reply/${replyParent.id}`;
+          bodyContent = { content: newComment, reply_parent: replyParent.id };
+        } else {
+          // Replying to a comment
+          endpoint = `${import.meta.env.VITE_API_URL}/api/profile/comments/reply/${replyTo.id}`;
+          bodyContent = { content: newComment };
+        }
+      }
 
       const response = await fetch(endpoint, {
-        method,
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${access}`,
@@ -96,6 +116,7 @@ const Comments = ({ postId }) => {
         fetchComments();
         setNewComment('');
         setReplyTo(null);
+        setReplyParent(null);
       } else {
         console.log('Error submitting comment');
       }
@@ -107,11 +128,12 @@ const Comments = ({ postId }) => {
   const toggleReplies = (commentId) => {
     setVisibleReplies((prev) => ({
       ...prev,
-      [commentId]: !prev[commentId],
+      [commentId]: !prev[commentId], 
     }));
 
     if (!visibleReplies[commentId]) {
       fetchReplies(commentId);
+      
     }
   };
 
@@ -149,11 +171,19 @@ const Comments = ({ postId }) => {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-500">{timeAgo(comment.created_at)}</span>
-                    <p
+                   {comment.has_replies ? <p
                       className="text-blue-500 text-xs cursor-pointer"
                       onClick={() => toggleReplies(comment.id)}
                     >
                       {visibleReplies[comment.id] ? 'Hide replies' : 'Show replies'}
+                    </p> : (
+                      <p className="text-xs text-gray-500">No replies</p>
+                    )}
+                    <p
+                      onClick={() => handleReply(comment)}
+                      className="text-blue-500 text-xs cursor-pointer"
+                    >
+                      Reply
                     </p>
                   </div>
 
@@ -174,14 +204,24 @@ const Comments = ({ postId }) => {
                                 <p className="font-bold">{reply.user ? reply.user : 'Unknown User'}:</p>
                                 <p>{reply.content || 'No content'}</p>
                               </div>
-                              <span className="text-xs text-gray-500">{timeAgo(reply.created_at)}</span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-xs text-gray-500">{timeAgo(reply.created_at)}</span>
+                                <p
+                                  onClick={() => handleReply(reply, true)}
+                                  className="text-blue-500 text-xs cursor-pointer"
+                                >
+                                  Reply
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>
                       ))}
-                      <Button onClick={() => loadMoreReplies(comment.id)} className="text-blue-500">
-                        Load more replies
-                      </Button>
+                      {hasMoreReplies[comment.id] && (
+                        <Button onClick={() => loadMoreReplies(comment.id)} className="text-blue-500">
+                          Load more replies
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -190,9 +230,11 @@ const Comments = ({ postId }) => {
           ))
         )}
 
-        <Button onClick={loadMoreComments} className="text-blue-500">
-          Load more comments
-        </Button>
+        {hasMoreComments && (
+          <Button onClick={loadMoreComments} className="text-blue-500">
+            Load more comments
+          </Button>
+        )}
       </ScrollArea>
 
       <div className="flex items-center py-4 px-2 border-t">
