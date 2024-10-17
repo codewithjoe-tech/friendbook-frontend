@@ -8,29 +8,33 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 const Comments = ({ postId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
-  const [replyTo, setReplyTo] = useState(null);  // For replies to comments
-  const [replyParent, setReplyParent] = useState(null);  // For replies to replies
+  const [replyTo, setReplyTo] = useState(null); 
+  const [replyParent, setReplyParent] = useState(null);  
   const [visibleReplies, setVisibleReplies] = useState({});
   const [page, setPage] = useState(1);
   const [hasMoreComments, setHasMoreComments] = useState(false);
   const [replyPages, setReplyPages] = useState({});
   const [hasMoreReplies, setHasMoreReplies] = useState({});
+  const [commentUrl, setCommentUrl] = useState(`${import.meta.env.VITE_API_URL}/api/profile/comments/${postId}`)
 
   const access = getCookie('accessToken');
 
-  // Fetch initial comments
-  const fetchComments = async (pageNumber = 1) => {
+  const fetchComments = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/comments/${postId}?page=${pageNumber}`, {
+      const response = await fetch(commentUrl, {
         headers: {
           Authorization: `Bearer ${access}`,
         },
       });
 
       const data = await response.json();
+      console.log(data)
       if (response.ok) {
         setComments((prev) => [...prev, ...data.results]);
-        setHasMoreComments(!!data.next);
+        setHasMoreComments(comments.length<data.count);
+        if(data.next){
+          setCommentUrl(data.next);
+        }
       } else {
         console.log('Error fetching comments');
       }
@@ -39,10 +43,9 @@ const Comments = ({ postId }) => {
     }
   };
 
-  // Fetch replies for a comment
   const fetchReplies = async (commentId, pageNumber = 1) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/comments/replies/${commentId}?page=${pageNumber}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/comments/reply/${commentId}?page=${pageNumber}`, {
         headers: {
           Authorization: `Bearer ${access}`,
         },
@@ -70,42 +73,29 @@ const Comments = ({ postId }) => {
     fetchComments();
   }, [postId]);
 
-  // Handle replying to comments or replies
   const handleReply = (comment, isReplyToReply = false) => {
     setReplyTo(comment);
     if (isReplyToReply) {
-      setReplyParent(comment);  // Handle replies to replies
+      setReplyParent(comment);  
     } else {
-      setReplyParent(null);  // Clear out replyParent if replying to a top-level comment
+      setReplyParent(null);  
     }
     setNewComment(`@${comment.user} `);
   };
 
-  // Cancel replying
   const cancelReply = () => {
     setReplyTo(null);
     setReplyParent(null);
     setNewComment('');
   };
 
-  // Add comment or reply
+
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
 
-    // Optimistic update
-    let optimisticComment = {
-      id: Date.now(),  // Temporary ID for UI
-      user: 'Current User',  // Replace with actual current user data
-      content: newComment,
-      created_at: new Date(),
-      replies: [],
-      has_replies: false,
-      profile_pic: 'path-to-current-user-pic', // Replace with current user's profile pic
-    };
 
     if (replyTo) {
       if (replyParent) {
-        // Optimistic update for replies to replies
         setComments((prevComments) =>
           prevComments.map((comment) =>
             comment.id === replyParent.id
@@ -117,7 +107,7 @@ const Comments = ({ postId }) => {
           )
         );
       } else {
-        // Optimistic update for replies to top-level comments
+       
         setComments((prevComments) =>
           prevComments.map((comment) =>
             comment.id === replyTo.id
@@ -130,11 +120,10 @@ const Comments = ({ postId }) => {
         );
       }
     } else {
-      // Optimistic update for new top-level comments
+    
       setComments((prevComments) => [optimisticComment, ...prevComments]);
     }
 
-    // Clear input
     setNewComment('');
     setReplyTo(null);
     setReplyParent(null);
@@ -165,7 +154,7 @@ const Comments = ({ postId }) => {
       const newCommentData = await response.json();
 
       if (response.status === 201) {
-        // Replace optimistic comment with the real comment from server
+       
         setComments((prevComments) =>
           prevComments.map((comment) =>
             comment.id === optimisticComment.id ? newCommentData : comment
@@ -179,7 +168,7 @@ const Comments = ({ postId }) => {
     }
   };
 
-  // Toggle replies visibility
+
   const toggleReplies = (commentId) => {
     setVisibleReplies((prev) => ({
       ...prev,
@@ -191,13 +180,12 @@ const Comments = ({ postId }) => {
     }
   };
 
-  // Load more comments
+
   const loadMoreComments = () => {
-    setPage((prev) => prev + 1);
-    fetchComments(page + 1);
+
+    fetchComments();
   };
 
-  // Load more replies
   const loadMoreReplies = (commentId) => {
     const nextPage = (replyPages[commentId] || 1) + 1;
     setReplyPages((prev) => ({ ...prev, [commentId]: nextPage }));
@@ -210,8 +198,8 @@ const Comments = ({ postId }) => {
         {comments.length === 0 ? (
           <p className="text-center text-gray-500">No comments available.</p>
         ) : (
-          comments.map((comment) => (
-            <div key={comment.id} className="mb-4 border-b pb-2">
+          comments.map((comment,index) => (
+            <div key={`comment_${index}`} className="mb-4 border-b pb-2">
               <div className="flex items-start gap-3">
                 <Avatar className="mt-3" size="sm">
                   <AvatarImage 
@@ -227,6 +215,7 @@ const Comments = ({ postId }) => {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-500">{timeAgo(comment.created_at)}</span>
+                    {/* {comment.has_replies ? "True" : "False"} */}
                     {comment.has_replies ? (
                       <p
                         className="text-blue-500 text-xs cursor-pointer"
@@ -245,11 +234,11 @@ const Comments = ({ postId }) => {
                     </p>
                   </div>
 
-                  {/* Show replies */}
+                
                   {visibleReplies[comment.id] && comment.replies && (
                     <div className="ml-10 mt-2">
-                      {comment.replies.map((reply) => (
-                        <div key={reply.id} className="mb-2">
+                      {comment.replies.map((reply,index) => (
+                        <div key={`reply_${index}_${reply.id}`} className="mb-2">
                           <div className="flex items-start gap-2">
                             <Avatar className="mt-1" size="xs">
                               <AvatarImage 
@@ -319,3 +308,4 @@ const Comments = ({ postId }) => {
 };
 
 export default Comments;
+
