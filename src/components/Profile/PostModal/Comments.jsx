@@ -18,6 +18,7 @@ const Comments = ({ postId }) => {
 
   const access = getCookie('accessToken');
 
+  // Fetch initial comments
   const fetchComments = async (pageNumber = 1) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/comments/${postId}?page=${pageNumber}`, {
@@ -38,6 +39,7 @@ const Comments = ({ postId }) => {
     }
   };
 
+  // Fetch replies for a comment
   const fetchReplies = async (commentId, pageNumber = 1) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/comments/replies/${commentId}?page=${pageNumber}`, {
@@ -68,24 +70,74 @@ const Comments = ({ postId }) => {
     fetchComments();
   }, [postId]);
 
+  // Handle replying to comments or replies
   const handleReply = (comment, isReplyToReply = false) => {
     setReplyTo(comment);
     if (isReplyToReply) {
-      setReplyParent(comment);  // This handles replies to replies
+      setReplyParent(comment);  // Handle replies to replies
     } else {
       setReplyParent(null);  // Clear out replyParent if replying to a top-level comment
     }
     setNewComment(`@${comment.user} `);
   };
 
+  // Cancel replying
   const cancelReply = () => {
     setReplyTo(null);
     setReplyParent(null);
     setNewComment('');
   };
 
+  // Add comment or reply
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
+
+    // Optimistic update
+    let optimisticComment = {
+      id: Date.now(),  // Temporary ID for UI
+      user: 'Current User',  // Replace with actual current user data
+      content: newComment,
+      created_at: new Date(),
+      replies: [],
+      has_replies: false,
+      profile_pic: 'path-to-current-user-pic', // Replace with current user's profile pic
+    };
+
+    if (replyTo) {
+      if (replyParent) {
+        // Optimistic update for replies to replies
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.id === replyParent.id
+              ? {
+                  ...comment,
+                  replies: [...(comment.replies || []), optimisticComment],
+                }
+              : comment
+          )
+        );
+      } else {
+        // Optimistic update for replies to top-level comments
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.id === replyTo.id
+              ? {
+                  ...comment,
+                  replies: [...(comment.replies || []), optimisticComment],
+                }
+              : comment
+          )
+        );
+      }
+    } else {
+      // Optimistic update for new top-level comments
+      setComments((prevComments) => [optimisticComment, ...prevComments]);
+    }
+
+    // Clear input
+    setNewComment('');
+    setReplyTo(null);
+    setReplyParent(null);
 
     try {
       let endpoint = `${import.meta.env.VITE_API_URL}/api/profile/comments/${postId}`;
@@ -93,11 +145,9 @@ const Comments = ({ postId }) => {
 
       if (replyTo) {
         if (replyParent) {
-          // Replying to a reply
           endpoint = `${import.meta.env.VITE_API_URL}/api/profile/comments/reply-to-reply/${replyParent.id}`;
           bodyContent = { content: newComment, reply_parent: replyParent.id };
         } else {
-          // Replying to a comment
           endpoint = `${import.meta.env.VITE_API_URL}/api/profile/comments/reply/${replyTo.id}`;
           bodyContent = { content: newComment };
         }
@@ -112,11 +162,15 @@ const Comments = ({ postId }) => {
         body: JSON.stringify(bodyContent),
       });
 
+      const newCommentData = await response.json();
+
       if (response.status === 201) {
-        fetchComments();
-        setNewComment('');
-        setReplyTo(null);
-        setReplyParent(null);
+        // Replace optimistic comment with the real comment from server
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.id === optimisticComment.id ? newCommentData : comment
+          )
+        );
       } else {
         console.log('Error submitting comment');
       }
@@ -125,23 +179,25 @@ const Comments = ({ postId }) => {
     }
   };
 
+  // Toggle replies visibility
   const toggleReplies = (commentId) => {
     setVisibleReplies((prev) => ({
       ...prev,
-      [commentId]: !prev[commentId], 
+      [commentId]: !prev[commentId],
     }));
 
     if (!visibleReplies[commentId]) {
       fetchReplies(commentId);
-      
     }
   };
 
+  // Load more comments
   const loadMoreComments = () => {
     setPage((prev) => prev + 1);
     fetchComments(page + 1);
   };
 
+  // Load more replies
   const loadMoreReplies = (commentId) => {
     const nextPage = (replyPages[commentId] || 1) + 1;
     setReplyPages((prev) => ({ ...prev, [commentId]: nextPage }));
@@ -171,12 +227,14 @@ const Comments = ({ postId }) => {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-500">{timeAgo(comment.created_at)}</span>
-                   {comment.has_replies ? <p
-                      className="text-blue-500 text-xs cursor-pointer"
-                      onClick={() => toggleReplies(comment.id)}
-                    >
-                      {visibleReplies[comment.id] ? 'Hide replies' : 'Show replies'}
-                    </p> : (
+                    {comment.has_replies ? (
+                      <p
+                        className="text-blue-500 text-xs cursor-pointer"
+                        onClick={() => toggleReplies(comment.id)}
+                      >
+                        {visibleReplies[comment.id] ? 'Hide replies' : 'Show replies'}
+                      </p>
+                    ) : (
                       <p className="text-xs text-gray-500">No replies</p>
                     )}
                     <p
@@ -187,24 +245,25 @@ const Comments = ({ postId }) => {
                     </p>
                   </div>
 
+                  {/* Show replies */}
                   {visibleReplies[comment.id] && comment.replies && (
-                    <div className="mt-5">
+                    <div className="ml-10 mt-2">
                       {comment.replies.map((reply) => (
                         <div key={reply.id} className="mb-2">
                           <div className="flex items-start gap-2">
-                            <Avatar className="mt-3" size="sm">
+                            <Avatar className="mt-1" size="xs">
                               <AvatarImage 
                                 src={reply.profile_pic || 'https://via.placeholder.com/150'} 
                                 alt={reply.user || 'User Avatar'} 
                               />
                               <AvatarFallback>{reply.user ? reply.user[0] : "U"}</AvatarFallback>
                             </Avatar>
-                            <div className="flex-1 py-2">
-                              <div className="flex gap-2 items-center">
-                                <p className="font-bold">{reply.user ? reply.user : 'Unknown User'}:</p>
-                                <p>{reply.content || 'No content'}</p>
+                            <div className="flex-1">
+                              <div className="flex gap-2">
+                                <p className="font-bold text-xs">{reply.user}:</p>
+                                <p className="text-xs">{reply.content}</p>
                               </div>
-                              <div className="flex items-center gap-3">
+                              <div className="flex gap-2 items-center">
                                 <span className="text-xs text-gray-500">{timeAgo(reply.created_at)}</span>
                                 <p
                                   onClick={() => handleReply(reply, true)}
@@ -218,7 +277,11 @@ const Comments = ({ postId }) => {
                         </div>
                       ))}
                       {hasMoreReplies[comment.id] && (
-                        <Button onClick={() => loadMoreReplies(comment.id)} className="text-blue-500">
+                        <Button
+                          size="sm"
+                          className="text-xs"
+                          onClick={() => loadMoreReplies(comment.id)}
+                        >
                           Load more replies
                         </Button>
                       )}
@@ -229,32 +292,27 @@ const Comments = ({ postId }) => {
             </div>
           ))
         )}
-
         {hasMoreComments && (
-          <Button onClick={loadMoreComments} className="text-blue-500">
+          <Button size="sm" className="w-full" onClick={loadMoreComments}>
             Load more comments
           </Button>
         )}
       </ScrollArea>
 
-      <div className="flex items-center py-4 px-2 border-t">
-        {replyTo && (
-          <div className="flex items-center bg-blue-100 px-2 py-1 rounded-lg">
-            <span className="text-blue-600 text-xs mr-2">@{replyTo.user}</span>
-            <button onClick={cancelReply} className="text-red-500 text-xs">x</button>
-          </div>
-        )}
-
+      {/* Comment input */}
+      <div className="border-t border-gray-200 p-4 flex items-center gap-3">
         <Input
-          type="text"
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          placeholder={replyTo ? `Replying to @${replyTo.user}` : "Add a comment..."}
-          className="flex-1 border rounded-lg p-2 mr-2"
+          placeholder={replyTo ? `Replying to @${replyTo.user}` : 'Add a comment...'}
+          className="flex-1"
         />
-        <Button onClick={handleAddComment} className="bg-blue-700">
-          {replyTo ? 'Reply' : 'Comment'}
-        </Button>
+        {replyTo && (
+          <Button variant="ghost" onClick={cancelReply}>
+            Cancel
+          </Button>
+        )}
+        <Button onClick={handleAddComment}>Post</Button>
       </div>
     </div>
   );
