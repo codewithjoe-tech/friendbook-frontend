@@ -4,7 +4,7 @@ import { timeAgo } from '@/utils'
 import { HeartIcon } from 'lucide-react'
 import React from 'react'
 
-const PostDetails = ({post ,setPost}) => {
+const PostDetails = ({post ,setPost,changeCurrentTab}) => {
     const handleLike = async ()=>{
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/like/${postid}`, {
@@ -63,7 +63,7 @@ const PostDetails = ({post ,setPost}) => {
         </Button>
         <span className="text-lg">{post.like_count} likes</span>
       </div>
-      <div className="text-lg">
+      <div className="text-lg cursor-pointer text-blue-500" onClick={changeCurrentTab}>
         {post.comment_count} {post.comment_count === 1 ? 'comment' : 'comments'}
       </div>
     </div>
