@@ -12,6 +12,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { EllipsisVertical } from 'lucide-react';
+import { EllipsisVerticalIcon } from 'lucide-react';
+import { Trash2Icon } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { TriangleAlert } from 'lucide-react';
 
 
 
@@ -22,11 +27,12 @@ const Comments = ({ postId }) => {
   const [replyTo, setReplyTo] = useState(null); 
   const [replyParent, setReplyParent] = useState(null);  
   const [visibleReplies, setVisibleReplies] = useState({});
-
+  const {user} = useSelector((state)=>state.users)
   const [hasMoreComments, setHasMoreComments] = useState(false);
   const [replyPages, setReplyPages] = useState({});
   const [hasMoreReplies, setHasMoreReplies] = useState({});
   const [commentUrl, setCommentUrl] = useState(`${import.meta.env.VITE_API_URL}/api/profile/comments/${postId}?page=1`)
+
 
 
   const access = getCookie('accessToken');
@@ -61,7 +67,34 @@ const fetchComments = async () => {
   }
 };
 
+const handleDeleteComment = async(commentId , replyOfComment=false , parentComment=null) => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${access}`,
+      },
+    });
 
+    if (response.ok) {
+      if(replyOfComment){
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.id === parentComment
+             ? {...comment, replies: comment.replies.filter((reply) => reply.id!== commentId) }
+              : comment
+          )
+        );
+      } else {
+        setComments(prevComments => prevComments.filter((comment) => comment.id!== commentId));
+      }
+    } else {
+      console.log('Error deleting comment');
+    }
+  } catch (error) {
+    console.error('Failed to delete comment:', error);
+  }
+}
 
 
   const fetchReplies = async (commentId, pageNumber = 1) => {
@@ -166,7 +199,6 @@ const fetchComments = async () => {
         );
       }
     } else {
-      // New comment for the post
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/comments/${postId}`, {
         method: 'POST',
         headers: {
@@ -179,7 +211,6 @@ const fetchComments = async () => {
       setComments((prevComments) => [res, ...prevComments]);
     }
   
-    // Reset comment and reply states
     setNewComment('');
     setReplyTo(null);
     setReplyParent(null);
@@ -188,7 +219,6 @@ const fetchComments = async () => {
   const toggleReplies = (commentId) => {
 
     const comment = comments.filter(comment => comment.id === commentId)[0]
-    // console.log(comment.replies)
     
     setVisibleReplies((prev) => ({
       ...prev,
@@ -264,6 +294,20 @@ const fetchComments = async () => {
                     >
                       Reply
                     </p>
+                    <DropdownMenu className='text-xs' >
+  <DropdownMenuTrigger asChild >
+    <EllipsisVerticalIcon className='h-3 cursor-pointer mt-1' />
+  </DropdownMenuTrigger>
+  <DropdownMenuContent className="bg-muted hover:bg-muted/90 active:bg-muted/90 ">
+   
+   
+    <DropdownMenuItem onClick={()=>{handleDeleteComment(comment.id)}} className="text-red-500 text-xs cursor-pointer hover:text-red-600 " >
+      <Trash2Icon className='h-3 ' />
+      Delete</DropdownMenuItem>
+    
+  
+  </DropdownMenuContent>
+</DropdownMenu>
                   </div>
 
                 
@@ -296,6 +340,28 @@ const fetchComments = async () => {
                                 >
                                   Reply
                                 </p>
+
+                                <DropdownMenu className='text-xs' >
+  <DropdownMenuTrigger asChild >
+    <EllipsisVerticalIcon className='h-3 cursor-pointer mt-1' />
+  </DropdownMenuTrigger>
+  <DropdownMenuContent className="bg-muted hover:bg-muted/90 active:bg-muted/90 ">
+   
+   
+   { user.username === reply.username ? (<DropdownMenuItem onClick={()=>{handleDeleteComment(reply.id,true,reply.parent)}} className="text-red-500 text-xs cursor-pointer hover:text-red-600 " >
+      <Trash2Icon className='h-3 ' />
+      Delete</DropdownMenuItem>):(
+        <DropdownMenuItem  className="text-red-500 text-xs cursor-pointer hover:text-red-600 " >
+        <TriangleAlert className='h-3 ' />
+        Report</DropdownMenuItem>
+      )
+    }
+  
+  </DropdownMenuContent>
+</DropdownMenu>
+
+
+
                               </div>
                             </div>
                           </div>
