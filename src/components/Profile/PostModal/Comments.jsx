@@ -240,12 +240,11 @@ function highlightMentions(content) {
 
     return parts.map((part, index) => {
         if (mentionPattern.test(part)) {
-            // If the part matches the mention pattern, render it as a clickable element
             return (
                 <span
                     key={index}
                     onClick={() => {
-                        const username = part.slice(1); // Remove '@' from mention
+                        const username = part.slice(1);
                         navigate(`/profile/${username}`);
                         onClose();
                     }}
@@ -255,7 +254,6 @@ function highlightMentions(content) {
                 </span>
             );
         }
-        // If it's not a mention, render the part as normal text
         return <span key={index}>{part}</span>;
     });
 }
@@ -338,8 +336,10 @@ function highlightMentions(content) {
                       {comment.replies.map((reply,index) => (
                         <div key={`reply_${index}_${reply.id}`} className="mb-2">
                           <div className="flex items-start gap-2 mt-4">
-                            <Avatar className=" w-8 h-8 cursor-pointer" onClick = { ()=>{navigate(`/profile/${reply.user}`);onClose()}}  size="xs">
-                              <AvatarImage 
+                            <Avatar className=" cursor-pointer" onClick = { ()=>{navigate(`/profile/${reply.user}`);onClose()}}  size="xs">
+                              <AvatarImage
+                              className="object-cover h-9 w-9 rounded-full" 
+                              size="sm"
                                 src={reply.profile_pic || 'https://via.placeholder.com/150'} 
                                 alt={reply.user || 'User Avatar'} 
                               />
@@ -370,7 +370,7 @@ function highlightMentions(content) {
   <DropdownMenuContent className="bg-muted hover:bg-muted/90 active:bg-muted/90 ">
    
    
-   { user.username === reply.username ? (<DropdownMenuItem onClick={()=>{handleDeleteComment(reply.id,true,reply.parent)}} className="text-red-500 text-xs cursor-pointer hover:text-red-600 " >
+   { user.username === reply.username ? (<DropdownMenuItem  onClick={()=>{handleDeleteComment(reply.id,true,reply.parent)}} className="text-red-500 text-xs cursor-pointer hover:text-red-600 " >
       <Trash2Icon className='h-3 ' />
       Delete</DropdownMenuItem>):(
         <DropdownMenuItem  className="text-red-500 text-xs cursor-pointer hover:text-red-600 " >
