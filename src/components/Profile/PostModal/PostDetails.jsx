@@ -1,20 +1,22 @@
 import { Button } from '@/components/ui/button'
 import { DialogDescription } from '@/components/ui/dialog'
-import { timeAgo } from '@/utils'
+import { getCookie, timeAgo } from '@/utils'
 import { HeartIcon } from 'lucide-react'
 import React from 'react'
 
 const PostDetails = ({post ,setPost,changeCurrentTab}) => {
+
+  const access = getCookie('accessToken');
     const handleLike = async ()=>{
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/like/${postid}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/like/${post.id}`, {
               headers: {
                 Authorization: `Bearer ${access}`,
               },
             });
       
+
             if (response.ok) {
-             
             } else {
               console.log('Error fetching post');
             }

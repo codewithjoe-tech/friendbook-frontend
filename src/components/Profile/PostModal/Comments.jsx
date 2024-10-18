@@ -18,6 +18,7 @@ import { Trash2Icon } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { TriangleAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ReportModal from '@/components/common/ReportModal';
 
 
 
@@ -33,8 +34,19 @@ const Comments = ({ postId,onClose }) => {
   const [replyPages, setReplyPages] = useState({});
   const [hasMoreReplies, setHasMoreReplies] = useState({});
   const [commentUrl, setCommentUrl] = useState(`${import.meta.env.VITE_API_URL}/api/profile/comments/${postId}?page=1`)
+  const [reportReason, setReportReason] = useState('')
+  const [reportModalOpen, setReportModalOpen] = useState(false)
+
+  const [reportId, setReportId] = useState(null)
 
 
+  const handleReportValueChange = (e)=>{
+    setReportReason(e.target.value)
+  }
+
+  const handleReportModal = ()=>{
+    setReportModalOpen(!reportModalOpen)
+  }
   const navigate = useNavigate()
 
 
@@ -151,6 +163,32 @@ const handleDeleteComment = async(commentId , replyOfComment=false , parentComme
   };
 
  
+
+
+  const commentReport = async(id)=>{
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/report/`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${access}`,
+        },
+        body:JSON.stringify({
+          content_type:"comment",
+          object_id:id,
+          reason:reportReason
+
+        })
+      });
+
+      if (response.ok) {
+        console.log('Comment reported successfully');
+      } else {
+        console.log('Error reporting comment');
+      }
+    } catch (error) {
+      console.error('Failed to report comment:', error);
+    }
+  }
 
 
   const handleAddComment = async () => {
@@ -314,6 +352,7 @@ function highlightMentions(content) {
                     >
                       Reply
                     </p>
+
                     <DropdownMenu className='text-xs' >
   <DropdownMenuTrigger asChild >
     <EllipsisVerticalIcon className='h-3 cursor-pointer mt-1' />
@@ -321,13 +360,18 @@ function highlightMentions(content) {
   <DropdownMenuContent className="bg-muted hover:bg-muted/90 active:bg-muted/90 ">
    
    
-    <DropdownMenuItem onClick={()=>{handleDeleteComment(comment.id)}} className="text-red-500 text-xs cursor-pointer hover:text-red-600 " >
+   { user.username === comment.user ? (<DropdownMenuItem  onClick={()=>{handleDeleteComment(comment.id,true,comment.parent)}} className="text-red-500 text-xs cursor-pointer hover:text-red-600 hover:bg-muted" >
       <Trash2Icon className='h-3 ' />
-      Delete</DropdownMenuItem>
-    
+      Delete</DropdownMenuItem>):(
+        <DropdownMenuItem  className="text-red-500 text-xs cursor-pointer hover:text-red-600 hover:bg-muted" >
+        <TriangleAlert className='h-3 ' />
+        Report</DropdownMenuItem>
+      )
+    }
   
   </DropdownMenuContent>
 </DropdownMenu>
+
                   </div>
 
                 
@@ -370,10 +414,10 @@ function highlightMentions(content) {
   <DropdownMenuContent className="bg-muted hover:bg-muted/90 active:bg-muted/90 ">
    
    
-   { user.username === reply.username ? (<DropdownMenuItem  onClick={()=>{handleDeleteComment(reply.id,true,reply.parent)}} className="text-red-500 text-xs cursor-pointer hover:text-red-600 " >
+   { user.username === reply.user ? (<DropdownMenuItem  onClick={()=>{handleDeleteComment(reply.id,true,reply.parent)}} className="text-red-500 text-xs cursor-pointer hover:text-red-600 hover:bg-muted" >
       <Trash2Icon className='h-3 ' />
       Delete</DropdownMenuItem>):(
-        <DropdownMenuItem  className="text-red-500 text-xs cursor-pointer hover:text-red-600 " >
+        <DropdownMenuItem onClick={()=>{handleReportModal(); setReportId(reply.id)}} className="text-red-500 text-xs cursor-pointer hover:text-red-600 hover:bg-muted" >
         <TriangleAlert className='h-3 ' />
         Report</DropdownMenuItem>
       )
@@ -426,6 +470,7 @@ function highlightMentions(content) {
         )}
         <Button onClick={handleAddComment}>Post</Button>
       </div>
+      <ReportModal onClose={handleReportModal} open={reportModalOpen} handleReportValueChange={handleReportValueChange} reportId={reportId}  />
     </div>
   );
 };
