@@ -17,11 +17,12 @@ import { EllipsisVerticalIcon } from 'lucide-react';
 import { Trash2Icon } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { TriangleAlert } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 
 
 
-const Comments = ({ postId }) => {
+const Comments = ({ postId,onClose }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState(null); 
@@ -33,6 +34,8 @@ const Comments = ({ postId }) => {
   const [hasMoreReplies, setHasMoreReplies] = useState({});
   const [commentUrl, setCommentUrl] = useState(`${import.meta.env.VITE_API_URL}/api/profile/comments/${postId}?page=1`)
 
+
+  const navigate = useNavigate()
 
 
   const access = getCookie('accessToken');
@@ -106,6 +109,7 @@ const handleDeleteComment = async(commentId , replyOfComment=false , parentComme
       });
 
       const data = await response.json();
+      console.log(data)
       if (response.ok) {
         setComments((prevComments) =>
           prevComments.map((comment) =>
@@ -230,13 +234,31 @@ const handleDeleteComment = async(commentId , replyOfComment=false , parentComme
     }
   };
 
-  function highlightMentions(content) {
+function highlightMentions(content) {
     const mentionPattern = /(@\w+)/g;
+    const parts = content.split(mentionPattern);
 
-    return content.replace(mentionPattern, '<span class="text-blue-500 hover:cursor-pointer hover:text-blue-600">$1</span>');
+    return parts.map((part, index) => {
+        if (mentionPattern.test(part)) {
+            // If the part matches the mention pattern, render it as a clickable element
+            return (
+                <span
+                    key={index}
+                    onClick={() => {
+                        const username = part.slice(1); // Remove '@' from mention
+                        navigate(`/profile/${username}`);
+                        onClose();
+                    }}
+                    className="text-blue-500 hover:cursor-pointer hover:text-blue-600"
+                >
+                    {part}
+                </span>
+            );
+        }
+        // If it's not a mention, render the part as normal text
+        return <span key={index}>{part}</span>;
+    });
 }
-
-
 
   const loadMoreComments = () => {
 
@@ -258,7 +280,7 @@ const handleDeleteComment = async(commentId , replyOfComment=false , parentComme
           comments.map((comment,index) => (
             <div key={`comment_${index}`} className="mb-4 border-b pb-2">
               <div className="flex items-start gap-3">
-                <Avatar className="mt-3 w-8 h-8 object-cover " size="sm">
+                <Avatar className="mt-3 w-8 h-8 object-cover cursor-pointer" onClick = { ()=>{navigate(`/profile/${comment.user}`);onClose()}} size="sm">
                   <AvatarImage 
                     src={comment.profile_pic || 'https://via.placeholder.com/150'} 
                     alt={comment.user || 'User Avatar'} 
@@ -267,13 +289,13 @@ const handleDeleteComment = async(commentId , replyOfComment=false , parentComme
                 </Avatar>
                 <div className="flex-1 py-3">
                   <div className="flex gap-3 items-center">
-                    <p className="font-bold">{comment.user ? comment.user : 'Unknown User'}:</p>
+                    <p  onClick = { ()=>{navigate(`/profile/${comment.user}`);onClose()}}  className="font-bold cursor-pointer">{comment.user ? comment.user : 'Unknown User'}:</p>
                     
                     
                     <p
   className="text-sm"
-  dangerouslySetInnerHTML={{ __html: highlightMentions(comment.content) }}
-></p>
+  
+>{comment.content}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-500">{timeAgo(comment.created_at)}</span>
@@ -316,7 +338,7 @@ const handleDeleteComment = async(commentId , replyOfComment=false , parentComme
                       {comment.replies.map((reply,index) => (
                         <div key={`reply_${index}_${reply.id}`} className="mb-2">
                           <div className="flex items-start gap-2 mt-4">
-                            <Avatar className=" w-8 h-8" size="xs">
+                            <Avatar className=" w-8 h-8 cursor-pointer" onClick = { ()=>{navigate(`/profile/${reply.user}`);onClose()}}  size="xs">
                               <AvatarImage 
                                 src={reply.profile_pic || 'https://via.placeholder.com/150'} 
                                 alt={reply.user || 'User Avatar'} 
@@ -325,12 +347,12 @@ const handleDeleteComment = async(commentId , replyOfComment=false , parentComme
                             </Avatar>
                             <div className="flex-1">
                               <div className="flex gap-2">
-                                <p className="font-bold text-xs">{reply.user}:</p>
+                                <p className="font-bold text-xs cursor-pointer" onClick = { ()=>{navigate(`/profile/${reply.user}`);onClose()}} >{reply.user}:</p>
                                 
-                                <p
-  className="text-xs"
-  dangerouslySetInnerHTML={{ __html: highlightMentions(reply.content) }}
-></p>
+                                <p className="text-xs">
+  {highlightMentions(reply.content)}
+</p>
+
                               </div>
                               <div className="flex gap-2 items-center">
                                 <span className="text-xs text-gray-500">{timeAgo(reply.created_at)}</span>

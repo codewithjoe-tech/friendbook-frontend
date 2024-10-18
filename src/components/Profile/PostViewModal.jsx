@@ -95,7 +95,7 @@ const PostViewModal = ({ postid, open, onClose }) => {
             tabs.current[currentTab] === 'd' ?(
              <PostDetails post={post} setPost={setPost} changeCurrentTab={()=>{setCurrentTab((prev) => (prev === 0? 1 : 0));}}/>
             ):(
-              <Comments postId={postid} /> 
+              <Comments postId={postid} onClose = {onClose}/> 
 
             )
           }
