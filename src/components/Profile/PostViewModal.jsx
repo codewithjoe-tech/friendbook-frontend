@@ -22,7 +22,7 @@ const PostViewModal = ({ postid, open, onClose }) => {
   const access = getCookie('accessToken');
 
   const changeCurrentTab = ()=>{
-    setCurrentTab((prev) => (prev === 0? 1 : 0));
+    setCurrentTab((prev) => (prev === 1? 0 : 0));
   }
   const fetchPost = async () => {
     try {
@@ -93,7 +93,7 @@ const PostViewModal = ({ postid, open, onClose }) => {
 
           {
             tabs.current[currentTab] === 'd' ?(
-             <PostDetails post={post} setPost={setPost} changeCurrentTab={changeCurrentTab}/>
+             <PostDetails post={post} setPost={setPost} changeCurrentTab={()=>{setCurrentTab((prev) => (prev === 0? 1 : 0));}}/>
             ):(
               <Comments postId={postid} /> 
 

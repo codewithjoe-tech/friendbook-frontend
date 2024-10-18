@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { setPost } from '@/redux/Slices/UserSlice/UserSlice';
 import PostViewModal from '@/components/Profile/PostViewModal';
+import FollowersFollowingModal from '@/components/Profile/FollowersFollowingModal';
 
 const OtherProfile = () => {
     const access = getCookie("accessToken");
@@ -30,6 +31,13 @@ const OtherProfile = () => {
     const dispatch = useDispatch()
     const [OpenPostView, setOpenPostView] = useState(false)
     const [PostId, setPostId] = useState('')
+    const [followPanelOpen, setFollowPanelOpen] = useState(false)
+    const [url, setUrl] = useState('')
+
+
+    const followPanelOnChange = () =>{
+        setFollowPanelOpen(!followPanelOpen)
+    }
     const handleOpenClose = ()=>{
         setOpenPostView(!OpenPostView)
     }
@@ -117,6 +125,14 @@ const OtherProfile = () => {
     }, [id])
     
 
+    const handleFollowing = ()=>{
+        setUrl(`${import.meta.env.VITE_API_URL}/api/profile/following/${id}`)
+        followPanelOnChange()
+    }
+    const handleFollowers = ()=>{
+        setUrl(`${import.meta.env.VITE_API_URL}/api/profile/followers/${id}`)
+        followPanelOnChange()
+    }
 
 
     return (
@@ -146,11 +162,11 @@ const OtherProfile = () => {
                                 <span className="font-bold text-xl">{userData?.posts_count || 0}</span>
                                 <p className="text-gray-400">Posts</p>
                             </div>
-                            <div className="text-center">
+                            <div onClick={handleFollowing} className="text-center cursor-pointer">
                                 <span className="font-bold text-xl">{userData.followingCount || 0}</span>
                                 <p className="text-gray-400">Following</p>
                             </div>
-                            <div className="text-center cursor-pointer">
+                            <div className="text-center cursor-pointer " onClick={handleFollowers}>
                                 <span className="font-bold text-xl">{userData.followersCount || 0}</span>
                                 <p className="text-gray-400">Followers</p>
                             </div>
@@ -160,7 +176,7 @@ const OtherProfile = () => {
 
 
                             {
-                                (id!=profileId) ?
+                                (id!=user?.username) ?
                                 (
                                     <>
                                         <Button onClick={followUser} className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg">
@@ -188,6 +204,7 @@ const OtherProfile = () => {
                 </div>
             </div>
             <PostViewModal open={OpenPostView} onClose={handleOpenClose} postid={PostId} />
+            <FollowersFollowingModal open={followPanelOpen} onClose={followPanelOnChange} url={url} />
         </div>
     );
 };
