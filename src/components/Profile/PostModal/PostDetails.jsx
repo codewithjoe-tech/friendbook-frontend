@@ -37,7 +37,7 @@ const PostDetails = ({post ,setPost,changeCurrentTab}) => {
     
   return (
     <div className="w-1/2 flex flex-col justify-between">
-    <DialogDescription>
+    <div >
       <div className="flex items-center mb-4">
         <img
           src={post.profile?.profile_picture || 'https://via.placeholder.com/40'}
@@ -50,7 +50,7 @@ const PostDetails = ({post ,setPost,changeCurrentTab}) => {
         </div>
       </div>
       <p className="mb-4">{post.content || 'No content available'}</p>
-    </DialogDescription>
+    </div>
 
     <div className="flex justify-between items-center mt-4">
       <div className="flex items-center space-x-4">
@@ -62,8 +62,8 @@ const PostDetails = ({post ,setPost,changeCurrentTab}) => {
               <HeartIcon className="w-5 h-5 text-red-500 " fill='red' />
             ) : (<HeartIcon className="w-5 h-5 text-white" />
           ) }
+        <span className="text-lg text-foreground"> &nbsp; &nbsp;{post.like_count} likes</span>
         </Button>
-        <span className="text-lg">{post.like_count} likes</span>
       </div>
       <div className="text-lg cursor-pointer text-blue-500" onClick={changeCurrentTab}>
         {post.comment_count} {post.comment_count === 1 ? 'comment' : 'comments'}

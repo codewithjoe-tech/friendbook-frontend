@@ -72,7 +72,7 @@ const PostViewModal = ({ postid, open, onClose }) => {
         <DialogClose />
       </DialogHeader>
 
-      <DialogContent className="flex flex-col space-x-6 max-w-3xl mt-4 h-[600px]">
+      <DialogContent className="flex flex-col space-x-6 max-w-3xl mt-4 h-[600px] ">
         <div className='flex gap-3 items-center '>
           <Button onClick={changeCurrentTab}><ArrowLeft/></Button>
           <DialogTitle className="text-start font-bold">Post</DialogTitle>
@@ -86,7 +86,7 @@ const PostViewModal = ({ postid, open, onClose }) => {
             <img
               src={post.image || 'https://via.placeholder.com/400'}
               alt="Post"
-              className="w-full h-auto object-contain rounded-md transition-transform duration-300"
+              className="w-full h-auto object-contain rounded-md transition-transform duration-300  z-50"
               style={{ transform: `scale(${zoomLevel})` }}
             />
           </div>
