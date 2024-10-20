@@ -19,6 +19,8 @@ import { useSelector } from 'react-redux';
 import { TriangleAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ReportModal from '@/components/common/ReportModal';
+import { useDispatch } from 'react-redux';
+import { showToast } from '@/redux/Slices/ToastSlice';
 
 
 
@@ -36,21 +38,64 @@ const Comments = ({ postId, onClose }) => {
   const [commentUrl, setCommentUrl] = useState(`${import.meta.env.VITE_API_URL}/api/profile/comments/${postId}?page=1`)
   const [reportReason, setReportReason] = useState('')
   const [reportModalOpen, setReportModalOpen] = useState(false)
-
   const [reportId, setReportId] = useState(null)
+  const access = getCookie('accessToken');
+  const dispatch = useDispatch()
 
 
   const handleReportValueChange = (e) => {
+    console.log(reportId)
+    console.log(reportReason)
     setReportReason(e.target.value)
   }
 
-  const handleReportModal = () => {
-    setReportModalOpen(!reportModalOpen)
+
+  const submitReport = async()=>{
+
+    if (!reportReason.trim()) return;
+    const response  = await fetch(`${import.meta.env.VITE_API_URL}/api/report/`,{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${access}`,
+      },
+      body: JSON.stringify({
+        content_type:"comment",
+        object_id : reportId,
+        reason: reportReason
+      }),
+    })
+    const res = await response.json()
+    console.log(res)
+    if(response.status==201) {
+      dispatch(showToast({
+        message: 'Report submitted successfully',
+        type:'s',
+      }))
+      console.log("status is workintg")
+      
+    }else{
+      dispatch(showToast({
+        message: 'Failed to submit report',
+        type:'e',
+      }))
+      setReportReason("")
+    }
+    handleReportModal()
+    setReportReason("")
+
   }
+  const handleReportModal = (id) => {
+    setReportModalOpen((prev) => !prev);
+    if (reportModalOpen) {
+      setReportId(null);
+    } else {
+      setReportId(id);
+    }
+  };
   const navigate = useNavigate()
 
 
-  const access = getCookie('accessToken');
   const fetchComments = async () => {
     try {
       const response = await fetch(commentUrl, {
@@ -164,30 +209,6 @@ const Comments = ({ postId, onClose }) => {
 
 
 
-  const commentReport = async (id) => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/report/`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${access}`,
-        },
-        body: JSON.stringify({
-          content_type: "comment",
-          object_id: id,
-          reason: reportReason
-
-        })
-      });
-
-      if (response.ok) {
-        console.log('Comment reported successfully');
-      } else {
-        console.log('Error reporting comment');
-      }
-    } catch (error) {
-      console.error('Failed to report comment:', error);
-    }
-  }
 
 
   const handleAddComment = async () => {
@@ -360,7 +381,7 @@ const Comments = ({ postId, onClose }) => {
                         {user.username === comment.user ? (<DropdownMenuItem onClick={() => { handleDeleteComment(comment.id, false) }} className="text-red-500 text-xs cursor-pointer hover:text-red-600 hover:bg-muted" >
                           <Trash2Icon className='h-3 ' />
                           Delete</DropdownMenuItem>) : (
-                          <DropdownMenuItem className="text-red-500 text-xs cursor-pointer hover:text-red-600 hover:bg-muted" >
+                          <DropdownMenuItem className="text-red-500 text-xs cursor-pointer hover:text-red-600 hover:bg-muted" onClick={() => { handleReportModal(comment?.id);  }}  >
                             <TriangleAlert className='h-3 ' />
                             Report</DropdownMenuItem>
                         )
@@ -414,8 +435,8 @@ const Comments = ({ postId, onClose }) => {
                                     {user.username === reply.user ? (<DropdownMenuItem onClick={() => { handleDeleteComment(reply.id, true, reply.parent) }} className="text-red-500 text-xs cursor-pointer hover:text-red-600 hover:bg-muted" >
                                       <Trash2Icon className='h-3 ' />
                                       Delete</DropdownMenuItem>) : (
-                                      <DropdownMenuItem onClick={() => { handleReportModal(); setReportId(reply.id) }} className="text-red-500 text-xs cursor-pointer hover:text-red-600 hover:bg-muted" >
-                                        <TriangleAlert className='h-3 ' />
+                                      <DropdownMenuItem onClick={() => { handleReportModal(reply?.id);  }} className="text-red-500 text-xs cursor-pointer hover:text-red-600 hover:bg-muted" >
+                                        <TriangleAlert className='h-3 '  />
                                         Report</DropdownMenuItem>
                                     )
                                     }
@@ -467,7 +488,7 @@ const Comments = ({ postId, onClose }) => {
         )}
         <Button onClick={handleAddComment}>Post</Button>
       </div>
-      <ReportModal onClose={handleReportModal} open={reportModalOpen} handleReportValueChange={handleReportValueChange} reportId={reportId} />
+      <ReportModal onClose={handleReportModal} open={reportModalOpen} handleReportValueChange={handleReportValueChange} submitReport={submitReport} reportReason={reportReason}/>
     </div>
   );
 };
