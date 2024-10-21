@@ -203,8 +203,8 @@ const OtherProfile = () => {
                     )}
                 </div>
             </div>
-            <PostViewModal open={OpenPostView} onClose={handleOpenClose} postid={PostId} />
-            <FollowersFollowingModal open={followPanelOpen} onClose={followPanelOnChange} url={url} />
+            <PostViewModal open={OpenPostView} onClose={handleOpenClose} postid={PostId}  />
+            <FollowersFollowingModal open={followPanelOpen} onClose={followPanelOnChange} url={url}  />
         </div>
     );
 };

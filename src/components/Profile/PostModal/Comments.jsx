@@ -25,7 +25,7 @@ import { showToast } from '@/redux/Slices/ToastSlice';
 
 
 
-const Comments = ({ postId, onClose }) => {
+const Comments = ({ postId, onClose , replyStatus , selectedComment }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState(null);
@@ -41,6 +41,7 @@ const Comments = ({ postId, onClose }) => {
   const [reportId, setReportId] = useState(null)
   const access = getCookie('accessToken');
   const dispatch = useDispatch()
+  const [blink, setBlink] = useState(false);
 
 
   const handleReportValueChange = (e) => {
@@ -49,6 +50,16 @@ const Comments = ({ postId, onClose }) => {
     setReportReason(e.target.value)
   }
 
+
+  useEffect(() => {
+    if(selectedComment){
+      setBlink(true)
+      setTimeout(() => {
+        setBlink(false)
+      }, 1000);
+    }
+  }, [selectedComment])
+  
 
   const submitReport = async()=>{
 
@@ -97,14 +108,24 @@ const Comments = ({ postId, onClose }) => {
 
 
   const fetchComments = async () => {
+    let url = `${commentUrl}`
+    console.log(replyStatus)
+    if (selectedComment) {
+      url += `&selected_comment=${selectedComment}`;
+    }
+    if (replyStatus) {
+      url += `&reply_status=${replyStatus}`;
+    }
     try {
-      const response = await fetch(commentUrl, {
+      const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${access}`,
         },
       });
 
       const data = await response.json();
+      console.log(data);
+      
 
       if (response.ok) {
         if (commentUrl.endsWith('1')) {
@@ -290,6 +311,22 @@ const Comments = ({ postId, onClose }) => {
     }
   };
 
+useEffect(() => {
+  if (replyStatus && comments.length > 0) {
+    const firstComment = comments[0];
+
+    // Automatically toggle the replies of the first comment if not visible
+    if (!visibleReplies[firstComment.id]) {
+      toggleReplies(firstComment.id);
+    }
+
+    // Fetch more replies if necessary for the first comment
+    if (!firstComment.replies || firstComment.replies.length === 0) {
+      fetchReplies(firstComment.id);
+    }
+  }
+}, [replyStatus, comments]);
+
   function highlightMentions(content) {
     const mentionPattern = /(@\w+)/g;
     const parts = content.split(mentionPattern);
@@ -332,25 +369,38 @@ const Comments = ({ postId, onClose }) => {
           <p className="text-center text-gray-500">No comments available.</p>
         ) : (
           comments.map((comment, index) => (
-            <div key={`comment_${index}`} className="mb-4 border-b pb-2">
-              <div className="flex items-start gap-3">
-                <Avatar className="mt-3 w-8 h-8 object-cover cursor-pointer" onClick={() => { navigate(`/profile/${comment.user}`); onClose() }} size="sm">
-                  <AvatarImage
-                    src={comment.profile_pic || 'https://via.placeholder.com/150'}
-                    alt={comment.user || 'User Avatar'}
-                  />
-                  <AvatarFallback>{comment.user ? comment.user[0] : "U"}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 py-3">
-                  <div className="flex gap-3 items-center">
-                    <p onClick={() => { navigate(`/profile/${comment.user}`); onClose() }} className="font-bold cursor-pointer">{comment.user ? comment.user : 'Unknown User'}:</p>
-
-
-                    <p
-                      className="text-sm"
-
-                    >{comment.content}</p>
-                  </div>
+            <div
+            key={`comment_${index}`}
+            className={`mb-4 border-b pb-2 ${
+              index === 0 && selectedComment && blink && !replyStatus? 'bg-muted/60 animate-pulse' : ''
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <Avatar className="mt-3 w-8 h-8 object-cover cursor-pointer" onClick={() => { navigate(`/profile/${comment.user}`); onClose() }} size="sm">
+                <AvatarImage
+                  src={comment.profile_pic || 'https://via.placeholder.com/150'}
+                  alt={comment.user || 'User Avatar'}
+                />
+                <AvatarFallback>{comment.user ? comment.user[0] : "U"}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 py-3">
+                <div className="flex gap-3">
+                  <p
+                    onClick={() => {
+                      navigate(`/profile/${comment.user}`);
+                      onClose();
+                    }}
+                    className="font-bold cursor-pointer"
+                  >
+                    {comment.user ? comment.user : 'Unknown User'}:
+                  </p>
+          
+                  <p
+                    className={`text-sm mt-1 ${index === 0 && selectedComment && blink && !replyStatus? 'bg-muted/60 animate-pulse' : ''}`}
+                  >
+                    {comment.content}
+                  </p>
+                </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-500">{timeAgo(comment.created_at)}</span>
 
@@ -396,7 +446,9 @@ const Comments = ({ postId, onClose }) => {
                   {visibleReplies[comment.id] && comment.replies && (
                     <div className=" mt-3">
                       {comment.replies.map((reply, index) => (
-                        <div key={`reply_${index}_${reply.id}`} className="mb-2">
+                        <div key={`reply_${index}_${reply.id}`} className={`mb-4 border-b pb-2 ${
+                          reply.id === selectedComment && blink && replyStatus? 'bg-muted/60 animate-pulse' : ''
+                        }`}>
                           <div className="flex items-start gap-2 mt-4">
                             <Avatar className=" cursor-pointer" onClick={() => { navigate(`/profile/${reply.user}`); onClose() }} size="xs">
                               <AvatarImage

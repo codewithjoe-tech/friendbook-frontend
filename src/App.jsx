@@ -16,6 +16,7 @@ import Spinner from "./components/common/Spinner";
 
 const AdminLayout = React.lazy(()=>import("./layouts/AdminLayout"))
 const AdminHome = React.lazy(()=>import("./app/admin/AdminHome"))
+const Reported = React.lazy(()=>import("./app/admin/Reported"))
 
 function App() {
     const router = createBrowserRouter([
@@ -68,6 +69,16 @@ function App() {
                     </div>
                     </>}>
                         <AdminHome />
+                    </Suspense>
+                },
+                {
+                    path:"reported",
+                    element:<Suspense fallback={<>
+                    <div className="w-full h-screen flex justify-center items-center">
+                        <Spinner/>
+                    </div>
+                    </>}>
+                        <Reported />
                     </Suspense>
                 }
             ]

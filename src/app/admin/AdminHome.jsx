@@ -102,7 +102,7 @@ const AdminHome = () => {
                         <tr key={index} className="border-b">
                             <td className="px-6 py-4">{user.id}</td>
                             <td className="px-6 py-4 font-medium">
-                                <Link to={`/profile/${user.profile_id}`} className="text-blue-500 hover:underline">
+                                <Link to={`/profile/${user.username}`} className="text-blue-500 hover:underline">
                                     {user.username}
                                 </Link>
                             </td>

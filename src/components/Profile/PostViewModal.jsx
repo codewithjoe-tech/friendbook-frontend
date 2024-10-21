@@ -13,14 +13,27 @@ import Comments from './PostModal/Comments';
 import { useRef } from 'react';
 import PostDetails from './PostModal/PostDetails';
 
-const PostViewModal = ({ postid, open, onClose }) => {
+const PostViewModal = ({ postid, open, onClose,selectedTab, commentId, replyStatus }) => {
   const [post, setPost] = useState({});
   const [zoomLevel, setZoomLevel] = useState(1);
   const tabs = useRef(['d','c'])
   const [currentTab, setCurrentTab] = useState(0);
+
+
   const [isZoomEnabled, setIsZoomEnabled] = useState(false);
   const access = getCookie('accessToken');
 
+
+  useEffect(() => {
+    if (selectedTab === 'comment') {
+      setCurrentTab(1); 
+    } else {
+      setCurrentTab(0); 
+    }
+
+   
+  }, [selectedTab]);
+  
   const changeCurrentTab = ()=>{
     setCurrentTab((prev) => (prev === 1? 0 : 0));
   }
@@ -95,7 +108,7 @@ const PostViewModal = ({ postid, open, onClose }) => {
             tabs.current[currentTab] === 'd' ?(
              <PostDetails post={post} setPost={setPost} changeCurrentTab={()=>{setCurrentTab((prev) => (prev === 0? 1 : 0));}}/>
             ):(
-              <Comments postId={postid} onClose = {onClose}/> 
+              <Comments postId={postid} onClose = {onClose} replyStatus={replyStatus} selectedComment={commentId} /> 
 
             )
           }

@@ -39,7 +39,7 @@ const Navbar = () => {
                     isActive ? 'border-b-2 border-blue-500' : ''
                   }
                 >
-                  Reported Posts
+                  Reported
                 </NavLink>
               </li>
             </ul>
