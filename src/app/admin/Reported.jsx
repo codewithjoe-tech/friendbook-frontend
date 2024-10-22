@@ -8,6 +8,15 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -26,9 +35,16 @@ const Reported = () => {
     const [postId, setPostId] = useState('')
     const [commentId, setCommentId] = useState(null)
     const [isReply, setIsReply] = useState(false)
+    const [reason, setReason] = useState([])
+    const [open, setOpen] = useState(false)
+    const dispatch = useDispatch()
 
 
-    const handlePostModalOpen = (id,comment,isReply) => {
+
+    const handleOpen = () => { setOpen(!open) }
+
+
+    const handlePostModalOpen = (id, comment, isReply) => {
         setIsReply(isReply)
         setPostId(id)
         console.log(isReply)
@@ -38,27 +54,91 @@ const Reported = () => {
 
 
     }
-    
-    const fetchReports = async ()=>{
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/reported/${selectValue}`,{
+
+    const fetchReports = async () => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/reported/${selectValue}`, {
             method: 'GET',
-            headers:{
+            headers: {
                 'Authorization': `Bearer ${getCookie('accessToken')}`
             }
         })
         const data = await response.json()
-        if(response.ok){
+        console.log(data)
+        if (response.ok) {
             setReports(data)
         }
+
+    }
+
+    const filteredReports = () => {
+        return reports.filter(report => report.username.toLowerCase().includes(searchTerm.toLowerCase()))
+    }
+
+
+    const fetchReasons = async (id) => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/report/reason/${id}/?selected_value=${selectValue}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${getCookie('accessToken')}`
+            }
+        })
+        const data = await response.json()
+        console.log(data)
+        if (response.ok) {
+            setReason(data)
+        }
+    }
+
+
+    const disableReported = async (id) => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/report/remove/${id}/?selected_value=${selectValue}`,
+
+            {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${getCookie('accessToken')}`
+                }
+            }
+        )
+        const data = await response.json()
+        console.log(data)
+        if (response.ok){
+            setReports(reports.filter((report)=>report.id!==id))
+        }
+     
+        dispatch(showToast({message:data.message||data.error,type:data.message?"s":"e"}))
+            
         
-    }
-    
-    const filteredReports = ()=>{
-        return reports.filter(report=>report.username.toLowerCase().includes(searchTerm.toLowerCase()))
+
     }
 
 
-    
+
+    const deleteReported = async (id) => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/report/delete/${id}/?selected_value=${selectValue}`,
+
+            {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${getCookie('accessToken')}`
+                }
+            }
+        )
+        const data = await response.json()
+        console.log(data)
+        if (response.ok){
+            setReports(reports.filter((report)=>report.id!==id))
+        }
+     
+        dispatch(showToast({message:data.message||data.error,type:data.message?"s":"e"}))
+            
+        
+
+    }
+
+
+
+
 
     useEffect(() => {
 
@@ -66,15 +146,19 @@ const Reported = () => {
         fetchReports()
 
 
-        
+
     }, [selectValue])
 
+    const splitNewLin = (sent) => {
+        return sent.split('\n')
+    }
 
-   
 
-    
+
+
+
     return (
-        <section className="relative overflow-x-auto h-96 overflow-y-auto border shadow-xl bg-muted/40 mt-16 rounded-lg">
+        <section className="relative overflow-x-auto h-96 overflow-y-auto border shadow-xl bg-muted/40 mt-16 rounded-lg select-none">
             <div className="flex justify-between items-center p-3 sticky top-0 bg-muted/50 backdrop-blur-md backdrop-saturate-150 border   shadow-lg">
                 <h2 className="text-xl font-semibold">Reported</h2>
                 <input
@@ -84,7 +168,7 @@ const Reported = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <Select value={selectValue} onValueChange={(value)=>setSelectValue(value)}>
+                <Select value={selectValue} onValueChange={(value) => setSelectValue(value)}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="report" />
                     </SelectTrigger>
@@ -102,6 +186,7 @@ const Reported = () => {
                         <th scope="col" className="px-6 py-3">ID</th>
                         <th scope="col" className="px-6 py-3">Username</th>
                         <th scope="col" className="px-6 py-3">Reported</th>
+                        <th scope="col" className="px-6 py-3">Ai Reported</th>
                         <th scope="col" className="px-6 py-3">Reason</th>
                         <th scope="col" className="px-6 py-3 text-center">Actions</th>
                     </tr>
@@ -116,10 +201,22 @@ const Reported = () => {
                                 </Link>
                             </td>
 
-                            <td className="px-6 py-4 cursor-pointer text-blue-500" onClick={()=>{handlePostModalOpen(selectValue==="post" ? report.id : report.post_id, selectValue==='comment'?report.id:null , selectValue==='comment'?report.reply:null)}}>
-                         {
-                            selectValue==='post' ?("show post"):selectValue==='comment' ?("show comment"):('show profile')
-                         }
+                            <td className="px-6 py-4 cursor-pointer text-blue-500" onClick={() => { handlePostModalOpen(selectValue === "post" ? report.id : report.post_id, selectValue === 'comment' ? report.id : null, selectValue === 'comment' ? report.reply : null) }}>
+                                {
+                                    selectValue === 'post' ? ("show post") : selectValue === 'comment' ? ("show comment") : ('show profile')
+                                }
+                            </td>
+
+                            <td className="px-6 py-4 cursor-pointer text-blue-500">
+                                {report.ai_reported ? "True" : "False"}
+                            </td>
+                            <td className="px-6 py-4 cursor-pointer text-blue-500" onClick={() => { fetchReasons(report.id); handleOpen() }}>
+                                click me
+                            </td>
+
+                            <td className='px-6 py-4 flex gap-3 items-center justify-center'>
+                                <div className='text-red-600 cursor-pointer hover:text-red-700 transition text-sm' onClick={()=>{deleteReported(report.id)}}><TrashIcon /></div>
+                                <div className='text-green-600 cursor-pointer hover:text-green-700 transition text-sm' onClick={()=>{disableReported(report.id)}}><CheckCircle /></div>
                             </td>
                         </tr>
                     ))}
@@ -133,7 +230,38 @@ const Reported = () => {
                 </tbody>
             </table>
 
-            <PostViewModal open={postModalOpen} onClose={handlePostModalOpen} postid={postId} commentId={commentId} selectedTab={selectValue} replyStatus={isReply}/>
+            <PostViewModal open={postModalOpen} onClose={handlePostModalOpen} postid={postId} commentId={commentId} selectedTab={selectValue} replyStatus={isReply} />
+            <Dialog open={open} onOpenChange={handleOpen}>
+
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Reports</DialogTitle>
+                        <DialogDescription>
+
+                        </DialogDescription>
+                        {
+                            reason.map((rea) => (
+                                <div key={rea.id} className="flex items-center px-4 py-2 border-b">
+                                    <ul className='flex flex-col '>
+                                        <Link className='text-blue-500 hover:text-blue-600 transition pb-2' to={`/profile/${rea.username}`}>{rea.username}</Link>
+                                        {
+                                            splitNewLin(rea.reason).map((reas, index) => (
+                                                <li key={index} className="flex items-center">
+
+                                                    {reas}
+                                                </li>
+                                            ))
+                                        }
+
+
+                                    </ul>
+                                </div>
+                            ))
+                        }
+                    </DialogHeader>
+                </DialogContent>
+            </Dialog>
+
         </section>
     );
 };
