@@ -33,6 +33,7 @@ const OtherProfile = () => {
     const [PostId, setPostId] = useState('')
     const [followPanelOpen, setFollowPanelOpen] = useState(false)
     const [url, setUrl] = useState('')
+    const {posts:newPost} = useSelector(state=>state.users)
 
 
     const followPanelOnChange = () =>{
@@ -47,6 +48,16 @@ const OtherProfile = () => {
         setPostId(id)
 
     }
+
+
+    useEffect(() => {
+
+        console.log(posts)
+    if (newPost){
+        setPosts([newPost,...posts])
+    }
+    }, [newPost])
+    
     const { id } = useParams();
     const { profileId, user } = useSelector((state) => state.users)
     const followUser = async () => {
@@ -101,6 +112,10 @@ const OtherProfile = () => {
 
 
     }, [id]);
+
+    const deletePost = (id)=>{
+        setPosts(posts.filter(post=>post.id !== id))
+    }
 
   
 
@@ -203,7 +218,7 @@ const OtherProfile = () => {
                     )}
                 </div>
             </div>
-            <PostViewModal open={OpenPostView} onClose={handleOpenClose} postid={PostId}  />
+            <PostViewModal open={OpenPostView} onClose={handleOpenClose} postid={PostId} postDelete={deletePost} />
             <FollowersFollowingModal open={followPanelOpen} onClose={followPanelOnChange} url={url}  />
         </div>
     );

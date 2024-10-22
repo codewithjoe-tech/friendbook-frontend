@@ -78,7 +78,7 @@ const AdminHome = () => {
     return (
         <section className="relative overflow-x-auto h-96 overflow-y-auto border shadow-xl bg-muted/40 mt-16 rounded-lg">
             <div className="flex justify-between items-center p-3 sticky top-0 bg-muted/50 backdrop-blur-md backdrop-saturate-150 border   shadow-lg">
-                <h2 className="text-xl font-semibold">Staff Users</h2>
+                <h2 className="text-xl font-semibold">Users</h2>
                 <input
                     type="text"
                     placeholder="Search Users..."

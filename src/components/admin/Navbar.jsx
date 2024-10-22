@@ -11,7 +11,7 @@ const Navbar = () => {
             <h1 className="text-2xl">Admin Panel</h1>
           </div>
           <div className="nav-links w-[25%] hidden md:block">
-            <ul className="flex justify-around items-center">
+            <ul className="flex gap-6 items-center">
               <li>
                 <NavLink
                   to={'/admin/home'}
@@ -22,16 +22,7 @@ const Navbar = () => {
                   Home
                 </NavLink>
               </li>
-              <li>
-                <NavLink
-                  to={'/admin/staffs'}
-                  className={({ isActive }) =>
-                    isActive ? 'border-b-2 border-blue-500' : ''
-                  }
-                >
-                  Staffs
-                </NavLink>
-              </li>
+             
               <li>
                 <NavLink
                   to={'/admin/reported'}

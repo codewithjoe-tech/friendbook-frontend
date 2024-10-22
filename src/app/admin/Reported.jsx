@@ -222,7 +222,7 @@ const Reported = () => {
                     ))}
                     {filteredReports().length === 0 && (
                         <tr>
-                            <td colSpan="5" className="py-4 text-center border">
+                            <td colSpan="6" className="py-4 text-center border">
                                 No reports found.
                             </td>
                         </tr>

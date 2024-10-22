@@ -57,7 +57,7 @@ const userSlice = createSlice({
       },
 
       setPost:(state,action)=>{
-        state.posts = [action.payload,...state.posts]
+        state.posts = action.payload
       }
     },
    

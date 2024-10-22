@@ -13,7 +13,7 @@ import Comments from './PostModal/Comments';
 import { useRef } from 'react';
 import PostDetails from './PostModal/PostDetails';
 
-const PostViewModal = ({ postid, open, onClose,selectedTab, commentId, replyStatus }) => {
+const PostViewModal = ({ postid, open, onClose,selectedTab, commentId, replyStatus ,postDelete}) => {
   const [post, setPost] = useState({});
   const [zoomLevel, setZoomLevel] = useState(1);
   const tabs = useRef(['d','c'])
@@ -85,7 +85,7 @@ const PostViewModal = ({ postid, open, onClose,selectedTab, commentId, replyStat
         <DialogClose />
       </DialogHeader>
 
-      <DialogContent className="flex flex-col space-x-6 max-w-3xl mt-4 h-[600px] ">
+      <DialogContent className="flex flex-col space-x-6 max-w-3xl mt-4 h-[600px] select-none ">
         <div className='flex gap-3 items-center '>
           <Button onClick={changeCurrentTab}><ArrowLeft/></Button>
           <DialogTitle className="text-start font-bold">Post</DialogTitle>
@@ -103,16 +103,20 @@ const PostViewModal = ({ postid, open, onClose,selectedTab, commentId, replyStat
               style={{ transform: `scale(${zoomLevel})` }}
             />
           </div>
+{ !post.ai_reported ? <>
 
           {
             tabs.current[currentTab] === 'd' ?(
-             <PostDetails post={post} setPost={setPost} changeCurrentTab={()=>{setCurrentTab((prev) => (prev === 0? 1 : 0));}}/>
+              <PostDetails post={post} setPost={setPost} changeCurrentTab={()=>{setCurrentTab((prev) => (prev === 0? 1 : 0));}} onClose={onClose} postDelete={postDelete}/>
             ):(
               <Comments postId={postid} onClose = {onClose} replyStatus={replyStatus} selectedComment={commentId} /> 
 
             )
           }
 
+              </> : (
+                <p className='text-muted-foreground/40'>Action unavailable due to reported post</p>
+              )}
          
         </div>
       </DialogContent>

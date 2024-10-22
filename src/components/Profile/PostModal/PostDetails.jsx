@@ -3,13 +3,15 @@ import { Button } from '@/components/ui/button'
 import { DialogDescription } from '@/components/ui/dialog'
 import { showToast } from '@/redux/Slices/ToastSlice'
 import { getCookie, timeAgo } from '@/utils'
+import { TrashIcon } from 'lucide-react'
 import { TriangleAlert } from 'lucide-react'
 import { HeartIcon } from 'lucide-react'
 import React from 'react'
 import { useState } from 'react'
+import { useSelector } from 'react-redux'
 import { useDispatch } from 'react-redux'
 
-const PostDetails = ({post ,setPost,changeCurrentTab}) => {
+const PostDetails = ({post ,setPost,changeCurrentTab,onClose,postDelete}) => {
 
   const access = getCookie('accessToken');
   const dispatch = useDispatch()
@@ -18,7 +20,9 @@ const PostDetails = ({post ,setPost,changeCurrentTab}) => {
   const [reportModalOpen, setReportModalOpen] = useState(false)
   const [reportId, setReportId] = useState(null)
 
+  const {user} = useSelector((state)=>state.users)
 
+console.log(post)
 
   const submitReport = async()=>{
 
@@ -62,6 +66,29 @@ const PostDetails = ({post ,setPost,changeCurrentTab}) => {
     }
   }
 
+
+  const deletePost = async()=>{
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/post/delete/${post.id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${access}`,
+      },
+    });
+
+    if (response.ok) {
+      onClose()
+      
+      
+      dispatch(showToast({
+        message: 'Post deleted successfully',
+        type:'s',
+      }))
+      // setPost(null)
+      postDelete(post.id)
+    } else {
+      console.log('Error deleting post');
+    }
+  }
 
   const handleReportValueChange = (e) => {
     console.log(reportId)
@@ -127,13 +154,28 @@ const PostDetails = ({post ,setPost,changeCurrentTab}) => {
         <span className="text-lg text-foreground"> &nbsp; &nbsp;{post.like_count} likes</span>
         </Button>
       </div>
-      <div className="text-sm cursor-pointer text-red-500 flex gap-2 items-center" onClick={handleReportModal}>
+
+      {
+user?.username !== post?.profile?.username &&
+
+        <div className="text-sm cursor-pointer text-red-500 flex gap-2 items-center" onClick={handleReportModal}>
         <TriangleAlert  />
       
   </div>
+      }
+
+  {
+user?.username === post?.profile?.username &&
+
+    <div className="text-lg cursor-pointer text-red-500" onClick={()=>{
+      deletePost()}}>
+        <TrashIcon />
+      </div>
+      }
       <div className="text-lg cursor-pointer text-blue-500" onClick={changeCurrentTab}>
         {post.comment_count} {post.comment_count === 1 ? 'comment' : 'comments'}
       </div>
+
 
     </div>
     <ReportModal onClose={handleReportModal} open={reportModalOpen} handleReportValueChange={handleReportValueChange} submitReport={submitReport} reportReason={reportReason}/>
