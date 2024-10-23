@@ -64,7 +64,7 @@ const Sidebar = () => {
                         <button onClick={()=>{dispatch(setModalOpen())}} className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"><PlusCircleIcon /> Create</button>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to={"/profile/"+`${user?.username}`}> <UserCircleIcon /> Profile</Link>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/notifications"> <BellRingIcon /> Notifications</Link>
-                        <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/messages"> <MessageCircle /> Messages</Link>
+                        <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/messages/"> <MessageCircle /> Messages</Link>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/settings"> <SettingsIcon />Settings</Link>
                      {
                         user?.user_status !=='normal' && (
