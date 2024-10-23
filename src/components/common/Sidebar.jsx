@@ -26,6 +26,8 @@ import { useNavigate } from 'react-router-dom'
 import { ModeToggle } from './ThemeDrop'
 import { UserCheck } from 'lucide-react'
 import { setModalOpen } from '@/redux/Slices/PostSlice'
+import { Button } from '../ui/button'
+import SearchUsers from './SearchUsers'
 
 
 
@@ -33,6 +35,11 @@ const Sidebar = () => {
     const [isOpen, setIsOpen] = useState(false)
     const { userImage, user,profileId } = useSelector((state) => state.users)
     const postModalOpen = useSelector((state)=>state.post.postModalOpen)
+    const [openSearch, setOpenSearch] = useState(false)
+
+    const toggleSearch = () => {
+        setOpenSearch(!openSearch)
+    }
   
     
     const dispatch = useDispatch()
@@ -52,9 +59,9 @@ const Sidebar = () => {
                 <div className="nav-links">
                     <div className="flex flex-col justify-center text-sm font-semibold ">
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"> <HomeIcon />Home</Link>
-                        <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"><SearchIcon /> Search</Link>
+                        <button onClick={toggleSearch} className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"><SearchIcon /> Search</button>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"><RadioIcon /> Reels</Link>
-                        <button onClick={()=>{console.log("Working");console.log(postModalOpen);dispatch(setModalOpen())}} className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"><PlusCircleIcon /> Create</button>
+                        <button onClick={()=>{dispatch(setModalOpen())}} className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"><PlusCircleIcon /> Create</button>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to={"/profile/"+`${user?.username}`}> <UserCircleIcon /> Profile</Link>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/notifications"> <BellRingIcon /> Notifications</Link>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/messages"> <MessageCircle /> Messages</Link>
@@ -96,6 +103,8 @@ const Sidebar = () => {
 
                 </div>
             </div>
+                     <SearchUsers open={openSearch} onClose={toggleSearch} />
+
         </div>
     )
 }
