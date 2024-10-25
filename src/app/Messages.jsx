@@ -8,7 +8,7 @@ import { useState } from "react";
 
 
 const ChatApp = () => {
-    const [chatListOpen, setChatListOpen] = useState(false)
+    const [chatListOpen, setChatListOpen] = useState(true)
     const handleChatListOpen = () => {
         setChatListOpen(!chatListOpen)
     }

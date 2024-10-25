@@ -27,6 +27,7 @@ const OtherProfile = () => {
 
     });
 
+    const navigate = useNavigate();
     const [posts, setPosts] = useState([])
     const dispatch = useDispatch()
     const [OpenPostView, setOpenPostView] = useState(false)
@@ -60,6 +61,21 @@ const OtherProfile = () => {
     
     const { id } = useParams();
     const { profileId, user } = useSelector((state) => state.users)
+
+    const goToChat = async()=>{
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/chat-room/${id}`,{
+            headers: {
+                'Authorization': `Bearer ${access}`
+            }
+        })
+        const data = await response.json()
+        console.log(data)
+        if (response.ok){
+            navigate(`/messages/${data.name}`)
+        }
+
+        
+    }
     const followUser = async () => {
         try {
 
@@ -197,7 +213,7 @@ const OtherProfile = () => {
                                         <Button onClick={followUser} className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg">
                                             {userData?.is_following ? "UnFollow" : 'Follow'}
                                         </Button>
-                                        <Button className="bg-pink-700 text-white px-4 py-2 rounded-lg">Message</Button>
+                                        <Button onClick={goToChat} className="bg-pink-700 text-white px-4 py-2 rounded-lg">Message</Button>
                                     </>
                                 ):(
                                     <Link to="/settings" className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg" >Edit Profile</Link>
