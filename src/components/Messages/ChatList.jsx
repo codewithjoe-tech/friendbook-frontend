@@ -5,13 +5,15 @@ import { useState } from 'react'
 import { useEffect } from 'react'
 import { getCookie } from '@/utils'
 import { Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
 
-const ChatList = () => {
+const ChatList = ({handleOpen}) => {
 
   const [chatList, setChatList] = useState([])
   const access = getCookie('accessToken')
 
+  const {roomName} = useParams()
 
   const fetchChatList = async ()=>{
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/chatroom-list/`,{
@@ -29,6 +31,11 @@ const ChatList = () => {
   useEffect(() => {
     fetchChatList()
   }, [])
+
+  
+  // useEffect(()=>{
+  //   handleOpen()
+  // },[roomName])
 
 
 
@@ -48,7 +55,7 @@ const ChatList = () => {
  
  {
   chatList && chatList.map((chats)=>(
- <Link to={`/messages/${chats.name}`} key={chats.name}>
+ <Link onClick={handleOpen}  to={`/messages/${chats.name}`} key={chats.name}>
     <div className="space-y-2 " >
    
    <div className="flex items-center justify-between py-4 px-2 bg-muted/30 rounded-lg cursor-pointer">

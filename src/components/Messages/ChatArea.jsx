@@ -4,8 +4,11 @@ import { Input } from "../ui/input";
 import { Menu, X, Phone, Video, SendHorizonal, Check, Paperclip } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useParams } from "react-router-dom";
-import { getCookie } from "@/utils";
+import { formatTimestamp, getCookie } from "@/utils";
 import { useSelector } from "react-redux";
+import { Mic } from "lucide-react";
+import { Link } from "react-router-dom";
+import UploadModal from "./UploadModal";
 
 const ChatArea = ({ open, handleOpen }) => {
   const [isChatRoom, setIsChatRoom] = useState(false);
@@ -14,6 +17,7 @@ const ChatArea = ({ open, handleOpen }) => {
   const [newMessage, setNewMessage] = useState("");
   const ws = useRef(null);
   const messagesEndRef = useRef(null);
+  const seenWs = useRef(null)
 
   const { user } = useSelector((state) => state.users);
   const { roomName } = useParams();
@@ -31,6 +35,7 @@ const ChatArea = ({ open, handleOpen }) => {
     const data = await response.json();
     if (response.ok) {
       setMessages(data);
+      console.log(data)
     }
   };
 
@@ -57,7 +62,7 @@ const ChatArea = ({ open, handleOpen }) => {
 
       if (!ws.current) {
         ws.current = new WebSocket(
-          `ws://127.0.0.1:8000/ws/chat/${roomName}/?token=${access}`
+          `${import.meta.env.VITE_WS_URL}/ws/chat/${roomName}/?token=${access}`
         );
 
         ws.current.onopen = () => {
@@ -81,6 +86,7 @@ const ChatArea = ({ open, handleOpen }) => {
       return () => {
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
           ws.current.close();
+          ws.current = null; 
         }
       };
     } else {
@@ -88,10 +94,59 @@ const ChatArea = ({ open, handleOpen }) => {
     }
   }, [roomName]);
 
+
+  useEffect(() => {
+    if(roomName){
+      if(!seenWs.current){
+        seenWs.current = new WebSocket(
+          `${import.meta.env.VITE_WS_URL}/ws/chat/seen/${roomName}/?token=${access}`
+        )
+
+        seenWs.current.onopen = (event) => {
+          
+          console.log("WebSocket for seen connected!")
+        }
+
+
+        seenWs.current.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          const seenIds = data.seen_message_ids;
+      
+          setMessages((prevMessages) =>
+            prevMessages.map((message) =>
+              seenIds.includes(message.id)
+                ? { ...message, seen: true }
+                : message
+            )
+          );
+        };
+
+        seenWs.current.onclose = () => {
+          console.log("WebSocket for seen disconnected")
+        }
+
+        seenWs.current.onerror = (error) => {
+          console.error("WebSocket error: ", error)
+        }
+
+
+      }
+    }
+
+    return () => {
+      if (seenWs.current && seenWs.current.readyState === WebSocket.OPEN) {
+        seenWs.current.close();
+        seenWs.current = null; 
+      }
+    };
+  }, [roomName])
+  
+
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
+ 
   }, [messages]);
 
   const sendMessage = () => {
@@ -107,62 +162,6 @@ const ChatArea = ({ open, handleOpen }) => {
         ws.current.send(JSON.stringify(messageData));
         setNewMessage("");
       }
-    }
-  };
-
-  const sendFileMessage = async (file) => {
-    let contentType;
-  
-    // Determine content type based on file type
-    if (file.type.startsWith("image/")) {
-      contentType = "imagemessage";
-    } else if (file.type.startsWith("video/")) {
-      contentType = "videomessage";
-    } else {
-      alert("Unsupported file type. Please upload an image or video.");
-      return;
-    }
-  
-    // Verify WebSocket connection and file type
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      const reader = new FileReader();
-  
-      // Read the file as base64
-      reader.onload = (e) => {
-        const base64Data = e.target.result.split(",")[1]; // Get the base64 data without the "data:image/png;base64," part
-  
-        const messageData = {
-          content_type: contentType,
-          content: {
-            file: base64Data,  // Base64 encoded file data
-            filename: file.name,
-            file_type: file.type // The MIME type of the file
-          },
-        };
-  
-        // Send the message to the WebSocket
-        ws.current.send(JSON.stringify(messageData));
-        setSelectedFile(null);
-      };
-  
-      reader.onerror = (error) => {
-        console.error("File reading error:", error);
-        alert("Failed to read the file.");
-      };
-  
-      // Start reading the file as Data URL (base64)
-      reader.readAsDataURL(file);
-    } else {
-      console.error("WebSocket is not open or file type is not supported.");
-    }
-  };
-  
-  
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      sendFileMessage(file);
     }
   };
 
@@ -227,10 +226,12 @@ const ChatArea = ({ open, handleOpen }) => {
                 <div key={index}>
                   {message.sender !== user.username ? (
                     <div className="flex space-x-4 items-center">
+                      <Link to={`/profile/${message.sender}`}>
                       <Avatar>
-                        <AvatarImage src="https://github.com/shadcn.png" />
+                        <AvatarImage className="object-cover" src={message?.profile_picture} />
                         <AvatarFallback>CN</AvatarFallback>
                       </Avatar>
+                      </Link>
 
                       <div>
                         <div
@@ -245,7 +246,7 @@ const ChatArea = ({ open, handleOpen }) => {
                           )}
                           {message.content_type === "imagemessage" && (
                             <img
-                              src={`data:image/*;base64,${message?.content_object?.file}`}
+                              src={message?.content_object?.image}
                               alt="Image"
                               className="max-w-xs"
                             />
@@ -253,19 +254,21 @@ const ChatArea = ({ open, handleOpen }) => {
                           {message.content_type === "videomessage" && (
                             <video
                               controls
-                              src={`data:video/*;base64,${message?.content_object?.file}`}
+                              src={message?.content_object?.video}
                               className="max-w-xs"
                             />
                           )}
                         </div>
                         <span className="text-xs text-muted-foreground/60">
-                          April 8, 2023, 6:30 AM
+                         {formatTimestamp(message?.timestamp)}
                         </span>
                       </div>
                     </div>
                   ) : (
+                   <>
                     <div className="flex justify-end space-x-4 items-center">
-                      <div
+                    <div className="flex flex-col space-y-2 items-end">
+                    <div
                         className={`p-4 rounded-lg shadow relative ${
                           message.seen ? "bg-blue-500/60" : "bg-blue-700"
                         }`}
@@ -277,7 +280,7 @@ const ChatArea = ({ open, handleOpen }) => {
                         )}
                         {message.content_type === "imagemessage" && (
                           <img
-                            src={`data:image/*;base64,${message?.content_object?.file}`}
+                            src={message?.content_object?.image}
                             alt="Image"
                             className="max-w-xs"
                           />
@@ -285,7 +288,7 @@ const ChatArea = ({ open, handleOpen }) => {
                         {message.content_type === "videomessage" && (
                           <video
                             controls
-                            src={`data:video/*;base64,${message?.content_object?.file}`}
+                            src={message?.content_object?.video}
                             className="max-w-xs"
                           />
                         )}
@@ -293,18 +296,27 @@ const ChatArea = ({ open, handleOpen }) => {
                           <Check className="absolute bottom-2 right-2 text-muted-foreground" size={16} />
                         )}
                       </div>
+                      <span className="text-xs text-muted-foreground/60">
+                         {formatTimestamp(message?.timestamp)}
+                        </span>
+                    </div>
                       <Avatar>
-                        <AvatarImage src="https://github.com/shadcn.png" />
+                        <AvatarImage className="object-cover" src={message?.profile_picture} />
                         <AvatarFallback>CN</AvatarFallback>
                       </Avatar>
+                    
                     </div>
+
+                    
+                   </>
+                    
                   )}
                 </div>
               ))}
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="flex p-4 bg-muted">
+          <div className="flex p-4 bg-muted items-center">
             <Input
               className="w-full p-2 bg-background/30 text-muted-foreground rounded"
               placeholder="Write your message"
@@ -312,15 +324,13 @@ const ChatArea = ({ open, handleOpen }) => {
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={handleKeyDown}
             />
-            <label className="ml-2 cursor-pointer">
-              <Paperclip />
-              <input
-                type="file"
-                accept="image/*,video/*"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
+            <label className="mx-2 cursor-pointer">
+              <Mic />
             </label>
+            <label className="mx-2 cursor-pointer">
+            <UploadModal roomName={roomName} ws={ws} />
+            </label>
+
             <Button
               className="ml-2 bg-muted/30 text-muted-foreground"
               onClick={sendMessage}
@@ -345,6 +355,8 @@ const ChatArea = ({ open, handleOpen }) => {
           </div>
         </div>
       )}
+
+
     </>
   );
 };

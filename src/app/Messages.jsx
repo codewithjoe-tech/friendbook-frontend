@@ -17,7 +17,7 @@ const ChatApp = () => {
 
 {
     chatListOpen && 
-    <ChatList />
+    <ChatList handleOpen={handleChatListOpen} />
 }
 
     

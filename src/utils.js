@@ -44,3 +44,19 @@ export const timeAgo = (dateString) => {
 
   return 'just now';
 };
+
+
+export function formatTimestamp(timestamp) {
+  const date = new Date(timestamp);
+  
+  const options = {
+    year: 'numeric',
+    month: 'short',    
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true       
+  };
+
+  return date.toLocaleString('en-US', options);
+}
