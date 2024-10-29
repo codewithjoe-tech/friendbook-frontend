@@ -18,6 +18,8 @@ const ChatArea = ({ open, handleOpen }) => {
   const ws = useRef(null);
   const messagesEndRef = useRef(null);
   const seenWs = useRef(null)
+  const callWs = useSelector((state) => state.call.ws);
+
 
   const { user } = useSelector((state) => state.users);
   const { roomName } = useParams();
@@ -180,6 +182,13 @@ const ChatArea = ({ open, handleOpen }) => {
     return full_name[0];
   };
 
+
+  const VideoCall = (target_username)=>{
+    if(callWs.readyState === WebSocket.OPEN){
+      callWs.send(JSON.stringify({ action:"call_request",target_username  }));
+    }
+  }
+
   return (
     <>
       {isChatRoom ? (
@@ -214,7 +223,7 @@ const ChatArea = ({ open, handleOpen }) => {
               <Button className="text-muted-foreground bg-background/30">
                 <Phone />
               </Button>
-              <Button className="text-muted-foreground bg-background/30">
+              <Button onClick={()=>{VideoCall(chatRoom?.other_user?.username)}} className="text-muted-foreground bg-background/30">
                 <Video />
               </Button>
             </div>
