@@ -4,11 +4,11 @@ import { PhoneCallIcon } from 'lucide-react';
 import { Avatar ,AvatarImage, AvatarFallback} from '../ui/avatar';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
-import { declineCall } from '@/redux/Slices/CallSlice';
+import { acceptCall, declineCall } from '@/redux/Slices/CallSlice';
 
 const CallRequestToast = () => {
     
-    const {incomingCall} = useSelector(state=>state.call)
+    const {incomingCall,ws,caller} = useSelector(state=>state.call)
     const dispatch = useDispatch()
     return (
         <div className="flex items-center w-full max-w-xs p-4 mb-4 fixed top-10 right-7 z-50 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 text-green-500">
@@ -20,10 +20,18 @@ const CallRequestToast = () => {
                 <div>{incomingCall.from}</div>
                 <div className="text-sm">Incoming call!</div>
             </div>
-            <Button variant type="button" className="ml-auto text-green-500 hover:text-green-700" onClick={() => {}}>
+            <Button variant type="button" className="ml-auto text-green-500 hover:text-green-700" onClick={() => {
+                ws.send(JSON.stringify({action:"accept_call",target_username:incomingCall.from}))
+                dispatch(acceptCall())
+                
+            }}>
                 <PhoneCallIcon />
             </Button>
-            <Button variant type="button" className="ml-2 text-red-500 hover:text-red-700" onClick={() => {dispatch(declineCall())}}>
+            <Button variant type="button" className="ml-2 text-red-500 hover:text-red-700" onClick={() => {
+                ws.send(JSON.stringify({action:"reject",target_username:incomingCall.from}))
+                dispatch(declineCall())
+                
+                }}>
                 <PhoneCallIcon />
             </Button>
         </div>

@@ -23,17 +23,18 @@ const callSlice = createSlice({
     reducers: {
         startCall: (state, action) => {
             state.isCalling = true;
-            state.caller = action.payload.caller;
-            state.receiver = action.payload.receiver;
+            state.caller = action.payload.caller; 
+            state.receiver = action.payload.receiver; 
             state.call = true;
             state.callWith = action.payload.receiver;
-            state.isCallingProfile = action.payload.callerProfile
+            state.isCallingProfile = action.payload.callerProfile;
         },
         receiveCallRequest: (state, action) => {
             state.incomingCall = action.payload;
             state.call = true;
             state.callWith = action.payload.from;
             state.callerImage = action.payload.callerImage;
+            state.caller = action.payload.from;
         },
         acceptCall: (state) => {
             state.isInCall = true;
@@ -51,7 +52,10 @@ const callSlice = createSlice({
             state.caller = null;
             state.receiver = null;
             state.incomingCall = null;
+            state.isCalling = false; 
+            state.callerImage = null; 
         },
+        
         endCall: (state) => {
             state.callEnded = true;
             state.isInCall = false;

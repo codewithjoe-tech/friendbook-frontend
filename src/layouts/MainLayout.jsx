@@ -1,10 +1,12 @@
 import { RouteChangeHandler } from '@/App'
 import Authenticate from '@/authenticate'
+import CallModal from '@/components/Call/CallModal'
 import CallRequestToast from '@/components/Call/CallRequestToast'
+import StartCalling from '@/components/Call/StartCalling'
 import Sidebar from '@/components/common/Sidebar'
 import Toast from '@/components/common/Toast'
 import UploadModal from '@/components/common/UploadModal'
-import { receiveCallRequest, setWebSocket, closeWebSocket } from '@/redux/Slices/CallSlice'
+import { receiveCallRequest, setWebSocket, closeWebSocket, declineCall, acceptCall } from '@/redux/Slices/CallSlice'
 import { setModalOpen } from '@/redux/Slices/PostSlice'
 import { getCookie } from '@/utils'
 import React, { useEffect, useRef } from 'react'
@@ -41,22 +43,42 @@ const MainLayout = () => {
             console.log("WebSocket connected! to notification")
         }
 
-        ws.current.onclose = () => {
+        ws.current.onclose = (e) => {
+            console.log(e)
             console.log("notification disconnected")
         }
 
         ws.current.onmessage = (event) => {
             const data = JSON.parse(event.data)
+            console.log(data)
             if (data.type === 'CALL_REQUEST' && data.from !== user?.username) {
                 console.log(data)
                 dispatch(receiveCallRequest({ from: data.from, callerImage: data.profile_picture }))
                 handleAudioPlay()
             }
+
+            if(data.type === "CALL_REJECTED" ){
+                console.log("rejected")
+                dispatch(declineCall())
+            }
+            if (data.type === "CALL_ABANDONED"){
+                dispatch(declineCall())
+            }
+            if (data.type === "CALL_ACCEPTED"){
+                
+                console.log(data)
+                dispatch(acceptCall())
+            }
+        }
+
+        ws.current.onerror = (error) => {
+            console.error('WebSocket error:', error)
         }
 
         dispatch(setWebSocket(ws.current))
 
         return () => {
+           
             dispatch(closeWebSocket())  
         }
     }, [access, user?.username, dispatch])
@@ -73,6 +95,8 @@ const MainLayout = () => {
             <Authenticate>
                 <Toast />
                 {call.incomingCall && <CallRequestToast />}
+                {call.isCalling && <StartCalling/>}
+                {call.isInCall && <CallModal/>}
                 <div className="flex gap-16 ">
                     <div className="basis-14">
                         <Sidebar />

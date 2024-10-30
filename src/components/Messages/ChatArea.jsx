@@ -9,6 +9,8 @@ import { useSelector } from "react-redux";
 import { Mic } from "lucide-react";
 import { Link } from "react-router-dom";
 import UploadModal from "./UploadModal";
+import { useDispatch } from "react-redux";
+import { startCall } from "@/redux/Slices/CallSlice";
 
 const ChatArea = ({ open, handleOpen }) => {
   const [isChatRoom, setIsChatRoom] = useState(false);
@@ -19,6 +21,7 @@ const ChatArea = ({ open, handleOpen }) => {
   const messagesEndRef = useRef(null);
   const seenWs = useRef(null)
   const callWs = useSelector((state) => state.call.ws);
+  const dispatch = useDispatch()
 
 
   const { user } = useSelector((state) => state.users);
@@ -53,6 +56,7 @@ const ChatArea = ({ open, handleOpen }) => {
     const data = await response.json();
     if (response.ok) {
       setChatRoom(data);
+      console.log(data)
     }
   };
 
@@ -185,7 +189,14 @@ const ChatArea = ({ open, handleOpen }) => {
 
   const VideoCall = (target_username)=>{
     if(callWs.readyState === WebSocket.OPEN){
+   
       callWs.send(JSON.stringify({ action:"call_request",target_username  }));
+      dispatch(startCall({
+        caller: user?.username,
+        callerProfile: chatRoom?.other_user?.profile_picture,
+        receiver: chatRoom?.other_user?.username
+    }));
+   
     }
   }
 
