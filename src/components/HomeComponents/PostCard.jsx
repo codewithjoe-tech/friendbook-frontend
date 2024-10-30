@@ -8,7 +8,7 @@ import ReportModal from "../common/ReportModal";
 import { TriangleAlert } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { showToast } from "@/redux/Slices/ToastSlice";
-import { getCookie } from "@/utils";
+import { getCookie, timeAgo } from "@/utils";
 
 export default function PostCard({ post, setPosts }) {
     const [open, setOpen] = useState(false)
@@ -108,7 +108,7 @@ export default function PostCard({ post, setPosts }) {
             </Avatar>
             <div className="mt-2">
               <p>{post?.profile?.full_name}</p>
-              <small>2 hours ago</small>
+              <small>{timeAgo(post?.created_at)} ago</small>
             </div>
           </div>
         </CardHeader>
