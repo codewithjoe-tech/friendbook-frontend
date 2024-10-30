@@ -1,25 +1,63 @@
-
-import StoryComponent from '@/components/HomeComponents/StoryComponent'
-import { profileThunk } from '@/redux/thunks/getProfileThunk'
-import React from 'react'
-import { useEffect } from 'react'
-import { useDispatch } from 'react-redux'
-import { useSelector } from 'react-redux'
+import PostCard from '@/components/HomeComponents/PostCard';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import { getCookie } from '@/utils';
+import PostCardSkelton from '@/components/HomeComponents/PostCardSkelton';
 
 const HomePage = () => {
-    const {} = useSelector((state) =>state.users)
-    const dispatch = useDispatch()
-   
-    
+  const {} = useSelector((state) => state.users);
+
+  const [posts, setPosts] = useState([]);
+  const [count, setCount] = useState(0);
+  const [hasMore, setHasMore] = useState(true); 
+  const access = getCookie('accessToken');
+  const initialUrl = `${import.meta.env.VITE_API_URL}/api/profile/recommend/posts/`;
+  const [url, setUrl] = useState(initialUrl);
+
+  const fetchPost = async () => {
+    if (!url) return; 
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${access}`,
+        },
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setPosts((prevPosts) => [...prevPosts, ...data.results]);
+        setCount((prevCount) => prevCount + data.results.length);
+        setHasMore(posts.length < data.count);
+        setUrl(data.next); 
+      } else {
+        console.error('Failed to fetch posts');
+      }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPost(); 
+  }, []);
+
   return (
-    <div className='w-[70%] mx-auto flex flex-col justify-center  h-screen overflow-x-hidden'>
-       
-        {/* <StoryComponent /> */}
-        <div className="flex h-full w-full py-4">
-
-        </div>
+    <div id="scrollableDiv" className="flex flex-col gap-10 w-full py-4 h-[50rem] mt-10 overflow-y-auto">
+      <InfiniteScroll
+        dataLength={count}
+        next={fetchPost}
+        hasMore={hasMore}
+        scrollableTarget="scrollableDiv"
+        loader={<PostCardSkelton />}
+      >
+        {posts.map((post) => (
+          <PostCard post={post} key={post.id}  setPosts={setPosts} />
+        ))}
+      </InfiniteScroll>
     </div>
-  )
-}
+  );
+};
 
-export default HomePage
+export default HomePage;

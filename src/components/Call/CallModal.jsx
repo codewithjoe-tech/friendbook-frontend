@@ -122,11 +122,7 @@ const CallModal = () => {
   };
   
   const endVideoCall = () => {
-    // ws.current.send(JSON.stringify({
-    //   action: "end_call",
-    //   type: "END_CALL",
-    //   target_username: user.username === caller ? receiver : caller,
-    // }))
+    
     if (callWs.current && callWs.current.readyState === WebSocket.OPEN) {
       callWs.current.send(JSON.stringify({
         action: "end_call",
