@@ -71,7 +71,7 @@ const ReelComments = ({ reelId, onClose , replyStatus , selectedComment }) => {
         Authorization: `Bearer ${access}`,
       },
       body: JSON.stringify({
-        content_type:"comment",
+        content_type:"reelcomment",
         object_id : reportId,
         reason: reportReason
       }),
