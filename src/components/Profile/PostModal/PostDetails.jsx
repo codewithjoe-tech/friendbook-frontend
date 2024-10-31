@@ -91,7 +91,7 @@ console.log(post)
   }
 
   const handleReportValueChange = (e) => {
-    console.log(reportId)
+    // console.log(reportId)
     console.log(reportReason)
     setReportReason(e.target.value)
   }

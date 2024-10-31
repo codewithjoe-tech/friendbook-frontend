@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 
 const ReelsCard = ({reel , handleSetReelid}) => {
     useEffect(() => {
-      console.log(reel)
     }, [])
     
     return (

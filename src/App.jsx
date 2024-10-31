@@ -14,6 +14,7 @@ import Settings from "./app/Settings";
 import OtherProfile from "./app/Profiles";
 import Spinner from "./components/common/Spinner";
 import Messages from "./app/Messages";
+import ReelsPage from "./app/ReelsPage";
 
 const AdminLayout = React.lazy(()=>import("./layouts/AdminLayout"))
 const AdminHome = React.lazy(()=>import("./app/admin/AdminHome"))
@@ -49,6 +50,10 @@ function App() {
                 {
                     path:"/profile/:id",
                     element:<OtherProfile />
+                },
+                {
+                    path:"/reels/",
+                    element: <ReelsPage/>
                 },
                 {
                     path:"/messages/",

@@ -231,9 +231,7 @@ const ChatArea = ({ open, handleOpen }) => {
               </div>
             </div>
             <div className="flex space-x-4">
-              <Button className="text-muted-foreground bg-background/30">
-                <Phone />
-              </Button>
+              
               <Button onClick={()=>{VideoCall(chatRoom?.other_user?.username)}} className="text-muted-foreground bg-background/30">
                 <Video />
               </Button>
@@ -344,9 +342,7 @@ const ChatArea = ({ open, handleOpen }) => {
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={handleKeyDown}
             />
-            <label className="mx-2 cursor-pointer">
-              <Mic />
-            </label>
+   
             <label className="mx-2 cursor-pointer">
             <UploadModal roomName={roomName} ws={ws} />
             </label>

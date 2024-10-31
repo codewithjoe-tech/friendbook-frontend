@@ -28,6 +28,7 @@ import { UserCheck } from 'lucide-react'
 import { setModalOpen } from '@/redux/Slices/PostSlice'
 import { Button } from '../ui/button'
 import SearchUsers from './SearchUsers'
+import Notification from './Notification'
 
 
 
@@ -36,12 +37,16 @@ const Sidebar = () => {
     const { userImage, user,profileId } = useSelector((state) => state.users)
     const postModalOpen = useSelector((state)=>state.post.postModalOpen)
     const [openSearch, setOpenSearch] = useState(false)
+    const [openNotification, setOpenNotification] = useState(false)
 
     const toggleSearch = () => {
         setOpenSearch(!openSearch)
     }
   
-    
+    const toggleNotification = () => {
+        setOpenNotification(!openNotification)
+    }
+  
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
@@ -60,10 +65,10 @@ const Sidebar = () => {
                     <div className="flex flex-col justify-center text-sm font-semibold ">
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"> <HomeIcon />Home</Link>
                         <button onClick={toggleSearch} className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"><SearchIcon /> Search</button>
-                        <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"><RadioIcon /> Reels</Link>
+                        <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/reels/"><RadioIcon /> Reels</Link>
                         <button onClick={()=>{dispatch(setModalOpen())}} className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/"><PlusCircleIcon /> Create</button>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to={"/profile/"+`${user?.username}`}> <UserCircleIcon /> Profile</Link>
-                        <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/notifications"> <BellRingIcon /> Notifications</Link>
+                        <button onClick={toggleNotification} className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/notifications"> <BellRingIcon /> Notifications</button>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/messages/"> <MessageCircle /> Messages</Link>
                         <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/settings"> <SettingsIcon />Settings</Link>
                      {
@@ -104,6 +109,7 @@ const Sidebar = () => {
                 </div>
             </div>
                      <SearchUsers open={openSearch} onClose={toggleSearch} />
+                     <Notification onClose={toggleNotification} open={openNotification} />
 
         </div>
     )

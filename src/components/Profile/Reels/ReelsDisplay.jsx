@@ -1,8 +1,7 @@
 import React from 'react'
 import ReelsCard from './ReelsCard'
 
-const ReelsDisplay = ({reels , handleSetPostid}) => {
-  console.log(reels)
+const ReelsDisplay = ({reels , handleSetReelid}) => {
   return (
     <div className={reels.length===0 ? "h-[50rem] mt-10 w-[60rem] mx-auto":"mt-10 w-[60rem] mx-auto" }>
     <h1 className="text-3xl">Posts</h1>
@@ -11,7 +10,7 @@ const ReelsDisplay = ({reels , handleSetPostid}) => {
         {!reels || reels.length === 0 ? (
             <p className="text-foreground/70">No Posts available</p>
         ) : (
-          reels?.map((reel, index) => <ReelsCard key={index} reel={reel}  handleSetPostid={handleSetPostid}/>)
+          reels?.map((reel, index) => <ReelsCard key={index} reel={reel}  handleSetReelid={handleSetReelid}/>)
         )}
     </div>
 </div>

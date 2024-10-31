@@ -49,6 +49,7 @@ const OtherProfile = () => {
     };
 
     const handleSetReelid = (id) => {
+        console.log(id)
         handleReelOpenClose();
         setReelId(id);
     };
@@ -221,7 +222,7 @@ const OtherProfile = () => {
                 <ReelsDisplay reels={reels} handleSetReelid={handleSetReelid} />
             )}
             <PostViewModal open={OpenPostView} onClose={handleOpenClose} postid={PostId} postDelete={deletePost} />
-            <ReelViewModal open={OpenReelView} onClose={handleReelOpenClose} reelid={ReelId} reelDelete={deleteReel} />
+            <ReelViewModal open={OpenReelView} onClose={handleReelOpenClose} reelId={ReelId} reelDelete={deleteReel} />
             <FollowersFollowingModal open={followPanelOpen} onClose={followPanelOnChange} url={url} />
         </div>
     );

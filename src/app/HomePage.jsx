@@ -44,13 +44,19 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div id="scrollableDiv" className="flex flex-col gap-10 w-full py-4 h-[50rem] mt-10 overflow-y-auto">
+    <div id="scrollableDiv" className="flex flex-col gap-10 w-full py-4 h-[90vh] mt-10 overflow-y-auto">
       <InfiniteScroll
         dataLength={count}
         next={fetchPost}
         hasMore={hasMore}
         scrollableTarget="scrollableDiv"
-        loader={<PostCardSkelton />}
+        loader={<>
+        <PostCardSkelton />
+        <PostCardSkelton />
+        
+        <PostCardSkelton />
+       
+        </>}
       >
         {posts.map((post) => (
           <PostCard post={post} key={post.id}  setPosts={setPosts} />
