@@ -11,76 +11,69 @@ import { useSelector } from "react-redux";
 const UploadModal = ({ isOpen, onClose }) => {
     const [hideLikes, setHideLikes] = useState(false);
     const [turnOffComments, setTurnOffComments] = useState(false);
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [filePreview, setFilePreview] = useState(null);
+    const [isVideo, setIsVideo] = useState(false);
     const [postContent, setPostContent] = useState("");
-    const profileId = useSelector((state)=>state.users.profileId)
-    const dispatch = useDispatch()
+    const profileId = useSelector((state) => state.users.profileId);
+    const dispatch = useDispatch();
 
-    const handleImageUpload = (event) => {
+    const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
-            setSelectedImage(file);
+            const isVideoFile = file.type.startsWith("video/");
+            setIsVideo(isVideoFile);
+            setSelectedFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImagePreview(reader.result);
+                setFilePreview(reader.result);
             };
             reader.readAsDataURL(file);
         }
     };
 
-    const handleRemoveImage = () => {
-        setSelectedImage(null);
-        setImagePreview(null);
+    const handleRemoveFile = () => {
+        setSelectedFile(null);
+        setFilePreview(null);
+        setIsVideo(false);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData();
-        formData.append('content', postContent);
-        formData.append('hide_likes', hideLikes);
-        formData.append('hide_comments', turnOffComments);
-        formData.append('profile', profileId); 
-        
-        if (selectedImage) {
-            formData.append('image', selectedImage);
-        }
-    
-        const access = getCookie('accessToken');
-        
+        formData.append("content", postContent);
+        formData.append("hide_likes", hideLikes);
+        formData.append("hide_comments", turnOffComments);
+        formData.append("profile", profileId);
+
+        if (selectedFile) formData.append(isVideo ? "video" : "image", selectedFile);
+
+        const access = getCookie("accessToken");
+
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/upload/post/`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${access}`,
-                },
-                body: formData,
-            });
-    
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/profile/upload/${isVideo ? "reel" : "post"}/`,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${access}`,
+                    },
+                    body: formData,
+                }
+            );
+
             const res = await response.json();
-            console.log(res)
-            if (response.status === 201) { 
-                console.log(res);
-                dispatch(setPost(res))
-                
-                
-                dispatch(showToast({ message: "Post uploaded successfully", type: "s" }));
-                onClose()
+            if (response.status === 201) {
+                dispatch(setPost(res));
+                dispatch(showToast({ message: `${isVideo?"Reel" :"Post"} uploaded successfully`, type: "s" }));
+                onClose();
             } else {
-                const errorRes = await response.json();
-                console.error(errorRes);
-                
-                
-                dispatch(showToast({ message: `Failed to upload post: ${errorRes.detail || "Unknown error"}`, type: "e" }));
+                dispatch(showToast({ message: `Failed to upload post: ${res.detail || "Unknown error"}`, type: "e" }));
             }
         } catch (error) {
-            console.error('Error:', error);
-            
-            
             dispatch(showToast({ message: "An error occurred while uploading the post", type: "e" }));
         }
     };
-    
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -93,32 +86,37 @@ const UploadModal = ({ isOpen, onClose }) => {
                         </button>
                     </DialogTitle>
                 </DialogHeader>
-                
+
                 <form onSubmit={handleSubmit}>
                     <div className="flex">
                         <div className="w-1/2 p-4">
-                            {imagePreview ? (
+                            {filePreview ? (
                                 <div className="relative">
-                                    <img
-                                        src={imagePreview}
-                                        alt="Upload Preview"
-                                        className="rounded-lg w-full"
-                                    />
+                                    {isVideo ? (
+                                        <video
+                                            src={filePreview}
+                                            controls
+                                            className="rounded-lg w-full h-[400px] object-cover"
+                                            style={{ aspectRatio: "9/16" }}
+                                        ></video>
+                                    ) : (
+                                        <img src={filePreview} alt="Upload Preview" className="rounded-lg w-full" />
+                                    )}
                                     <button
                                         className="absolute top-2 right-2 bg-red-500 rounded-full p-1"
-                                        onClick={handleRemoveImage}
+                                        onClick={handleRemoveFile}
                                     >
                                         <X />
                                     </button>
                                 </div>
                             ) : (
                                 <label className="flex flex-col items-center justify-center h-full border border-dashed border-foreground rounded-lg cursor-pointer">
-                                    <span className="text-foreground">Click to upload image</span>
+                                    <span className="text-foreground">Click to upload image or video</span>
                                     <input
                                         type="file"
-                                        accept="image/*"
+                                        accept="image/*,video/*"
                                         className="hidden"
-                                        onChange={handleImageUpload}
+                                        onChange={handleFileUpload}
                                     />
                                 </label>
                             )}
@@ -135,12 +133,12 @@ const UploadModal = ({ isOpen, onClose }) => {
 
                             <div className="space-y-3">
                                 <div className="font-semibold text-sm">Advanced settings</div>
-                                
+
                                 <div className="flex justify-between items-center">
                                     <label className="text-sm text-foreground">Hide like and view counts on this post</label>
                                     <Switch checked={hideLikes} onCheckedChange={setHideLikes} />
                                 </div>
-                                
+
                                 <p className="text-xs text-foreground/70">
                                     Only you will see the total number of likes and views on this post.
                                     You can change this later.
@@ -150,7 +148,7 @@ const UploadModal = ({ isOpen, onClose }) => {
                                     <label className="text-sm text-foreground">Turn off commenting</label>
                                     <Switch checked={turnOffComments} onCheckedChange={setTurnOffComments} />
                                 </div>
-                                
+
                                 <p className="text-xs text-foreground/70">
                                     You can change this later by going to the menu at the top of your post.
                                 </p>
