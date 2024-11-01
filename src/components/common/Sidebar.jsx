@@ -76,7 +76,7 @@ const Sidebar = () => {
                             <Link className='py-4 hover:bg-muted-foreground dark:hover:bg-muted px-3 transition duration-100 rounded-lg flex gap-2 items-center' to="/admin/home"> < UserCheck/>Admin</Link>
                         )
                      }
-                        <ModeToggle buttonName={"Theme"} />
+                      
                     </div>
                 </div>
                 <div className="absolute bottom-8  w-full flex text-white">
