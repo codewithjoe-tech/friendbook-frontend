@@ -21,8 +21,8 @@ const CallModal = () => {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerConnection = useRef(null);
-  const callWs = useRef(null);
   const iceCandidatesQueue = useRef([]);  
+  const callWs = useRef(null);
 
   useEffect(() => {
     if (isInCall) {
@@ -45,7 +45,12 @@ const CallModal = () => {
 
     callWs.current.onmessage = (message) => handleSignalingData(JSON.parse(message.data));
 
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    const stream = await navigato
+    
+    
+    
+    
+    r.mediaDevices.getUserMedia({ video: true, audio: true });
     setLocalStream(stream);
     if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 

@@ -38,6 +38,7 @@ const OtherProfile = () => {
     const [followPanelOpen, setFollowPanelOpen] = useState(false);
     const [url, setUrl] = useState('');
     const { posts: newPost, reels: newReel } = useSelector((state) => state.users);
+    const [postLoading, setPostLoading] = useState(false)
 
     const followPanelOnChange = () => setFollowPanelOpen(!followPanelOpen);
     const handleOpenClose = () => setOpenPostView(!OpenPostView);
@@ -115,21 +116,63 @@ const OtherProfile = () => {
     const deleteReel = (id) => setReels(reels.filter((reel) => reel.id !== id));
 
     const fetchPosts = async () => {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/posts/${id}`, {
-            headers: { Authorization: `Bearer ${access}` }
-        });
-        const res = await response.json();
-        if (response.ok) setPosts(res);
+        setPostLoading(true);
+    
+        if (!id || !access) {
+            console.error("Missing required parameters");
+            return;
+        }
+    
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/posts/${id}`, {
+                headers: { Authorization: `Bearer ${access}` }
+            });
+    
+            if (!response.ok) {
+                console.error("Failed to fetch posts:", response.status, await response.text());
+                return;
+            }
+    
+            const res = await response.json();
+    
+            if (Array.isArray(res)) setPosts(res);
+            else console.error("Unexpected response format:", res);
+        } catch (error) {
+            console.error("Error fetching posts:", error);
+        } finally {
+            setPostLoading(false);
+        }
     };
+    
 
     const fetchReels = async () => {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/reels/${id}`, {
-            headers: { Authorization: `Bearer ${access}` }
-        });
-        const res = await response.json();
-        console.log(res)
-        if (response.ok) setReels(res);
+        setPostLoading(true)
+        if (!id || !access) {
+            console.error("Missing required parameters");
+            return;
+        }
+    
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/reels/${id}`, {
+                headers: { Authorization: `Bearer ${access}` }
+            });
+    
+            if (!response.ok) {
+                console.error("Failed to fetch reels:", response.status, await response.text());
+                return;
+            }
+    
+            const res = await response.json();
+            
+            if (Array.isArray(res)) setReels(res);
+            else console.error("Unexpected response format:", res);
+        } catch (error) {
+            console.error("Error fetching reels:", error);
+        }finally{
+            setPostLoading(false)
+        }
     };
+    
 
     useEffect(() => {
         if (selectedTab === 'posts') fetchPosts();
@@ -158,8 +201,8 @@ const OtherProfile = () => {
                 </div>
                 <div className="ml-8 ">
                     <div className="flex flex-col justify-center">
-                        <h2 className="text-3xl font-bold mr-2">{userData?.user?.full_name}</h2>
-                        <span className="text-gray-400">@{userData?.user?.username}</span>
+                        <h2 className="text-3xl font-bold mr-2">{userData?.user?.full_name|| "No User Found"}</h2>
+                        <span className="text-gray-400">@{userData?.user?.username || "No user"}</span>
                     </div>
                     <p className="mt-2 w-[45rem] text-gray-300">{userData?.userBio || ""}</p>
                     <div className="flex items-center mt-4">
@@ -180,7 +223,7 @@ const OtherProfile = () => {
                         <div className="ml-auto space-x-4">
                             {id !== user?.username ? (
                                 <>
-                                    <Button
+                                  { userData.user && <> <Button
                                         onClick={followUser}
                                         className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg"
                                     >
@@ -191,7 +234,7 @@ const OtherProfile = () => {
                                         className="bg-pink-700 text-white px-4 py-2 rounded-lg"
                                     >
                                         Message
-                                    </Button>
+                                    </Button></>}
                                 </>
                             ) : (
                                 <Link to="/settings" className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg">
@@ -217,9 +260,9 @@ const OtherProfile = () => {
                 </button>
             </div>
             {selectedTab === "posts" ? (
-                <PostsDisplay posts={posts} handleSetPostid={handleSetPostid} />
+                <PostsDisplay posts={posts} handleSetPostid={handleSetPostid} loading ={postLoading} />
             ) : (
-                <ReelsDisplay reels={reels} handleSetReelid={handleSetReelid} />
+                <ReelsDisplay reels={reels} handleSetReelid={handleSetReelid} loading ={postLoading}/>
             )}
             <PostViewModal open={OpenPostView} onClose={handleOpenClose} postid={PostId} postDelete={deletePost} />
             <ReelViewModal open={OpenReelView} onClose={handleReelOpenClose} reelId={ReelId} reelDelete={deleteReel} />

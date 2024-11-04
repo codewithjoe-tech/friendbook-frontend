@@ -1,10 +1,9 @@
-import { Heart, MessageCircle } from "lucide-react";
+import { Heart, MessageCircle, TriangleAlert } from "lucide-react";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import ReportModal from "../common/ReportModal";
-import { TriangleAlert } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { showToast } from "@/redux/Slices/ToastSlice";
 import { getCookie, timeAgo } from "@/utils";
@@ -18,37 +17,44 @@ export default function ReelCard({ reel, setReels }) {
     const dispatch = useDispatch();
     const access = getCookie('accessToken');
     const videoRef = useRef(null);
+    const cardRef = useRef(null);
+    const [isVisible, setIsVisible] = useState(false);
 
-    const onClose = () => {
-        setOpen(!open);
-    };
+    const onClose = () => setOpen(!open);
 
     const submitReport = async () => {
         if (!reportReason.trim()) return;
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/report/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-            body: JSON.stringify({
-                content_type: "reel",
-                object_id: reel.id,
-                reason: reportReason
-            }),
-        });
-        const res = await response.json();
-        if (response.status === 201) {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/report/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${access}`,
+                },
+                body: JSON.stringify({
+                    content_type: "reel",
+                    object_id: reel.id,
+                    reason: reportReason
+                }),
+            });
+            if (response.status === 201) {
+                dispatch(showToast({
+                    message: 'Report submitted successfully',
+                    type: 's',
+                }));
+            } else {
+                dispatch(showToast({
+                    message: 'Failed to submit report',
+                    type: 'e',
+                }));
+                setReportReason("");
+            }
+        } catch (error) {
             dispatch(showToast({
-                message: 'Report submitted successfully',
-                type: 's',
-            }));
-        } else {
-            dispatch(showToast({
-                message: 'Failed to submit report',
+                message: 'An error occurred while submitting the report',
                 type: 'e',
             }));
-            setReportReason("");
+            console.error('Error submitting report:', error);
         }
         handleReportModal();
         setReportReason("");
@@ -56,14 +62,10 @@ export default function ReelCard({ reel, setReels }) {
 
     const handleReportModal = () => {
         setReportModalOpen((prev) => !prev);
-        if (reportModalOpen) {
-            setReportId(reel.id);
-        }
+        if (reportModalOpen) setReportId(reel.id);
     };
 
-    const handleReportValueChange = (e) => {
-        setReportReason(e.target.value);
-    };
+    const handleReportValueChange = (e) => setReportReason(e.target.value);
 
     const handleLike = async () => {
         try {
@@ -72,12 +74,17 @@ export default function ReelCard({ reel, setReels }) {
                     Authorization: `Bearer ${access}`,
                 },
             });
+            if (!response.ok) throw new Error('Failed to like the reel');
         } catch (error) {
+            dispatch(showToast({
+                message: 'Failed to like the reel',
+                type: 'e',
+            }));
             console.error('Failed to like the reel:', error);
         }
     };
 
-    const toggleLike = async () => {
+    const toggleLike = () => {
         handleLike();
         setReels((prevReels) =>
             prevReels.map((r) =>
@@ -103,29 +110,35 @@ export default function ReelCard({ reel, setReels }) {
     };
 
     useEffect(() => {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    videoRef.current.play();
-                } else {
-                    videoRef.current.pause();
-                }
-            });
-        }, { threshold: 0.5 });
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        setIsVisible(true);
+                        videoRef.current?.play();
+                    } else {
+                        setIsVisible(false);
+                        videoRef.current?.pause();
+                    }
+                });
+            },
+            { threshold: 0.5 }
+        );
 
-        if (videoRef.current) {
-            observer.observe(videoRef.current);
-        }
+        if (cardRef.current) observer.observe(cardRef.current);
 
         return () => {
-            if (videoRef.current) {
-                observer.unobserve(videoRef.current);
-            }
+            if (cardRef.current) observer.unobserve(cardRef.current);
         };
     }, []);
 
+
+    const handleDoubleClickLike = async ()=>{
+
+    }
+
     return (
-        <Card className="max-w-md mx-auto border rounded-lg shadow-sm mt-5">
+        <Card className="max-w-md mx-auto border rounded-lg shadow-sm mt-5" ref={cardRef}>
             <Link to={`/profile/${reel?.profile?.username}`}>
                 <CardHeader className="flex px-4 pt-4 pb-2">
                     <div className="flex items-center gap-1">
@@ -141,10 +154,25 @@ export default function ReelCard({ reel, setReels }) {
                 </CardHeader>
             </Link>
             <CardContent className="px-4 py-2">
-                <video ref={videoRef} className="w-full rounded-lg h-[600px] object-contain aspect-[9/16]" autoPlay loop onClick={handleVideoClick}>
-                    <source src={reel?.video} type="video/mp4" />
-                    Your browser does not support the video tag.
-                </video>
+                {isVisible ? (
+                    <video
+                        ref={videoRef}
+                        className="w-full rounded-lg h-[600px] object-contain aspect-[9/16]"
+                        preload="auto"
+                        muted
+                        loop
+                        autoPlay
+                        playsInline
+                        poster={reel.thumbnail}
+                        onClick={handleVideoClick}
+                        onDoubleClick={toggleLike}
+                    >
+                        <source src={reel?.video} type="video/mp4" />
+                        Your browser does not support the video tag.
+                    </video>
+                ) : (
+                    <img src={reel.thumbnail} className="w-full rounded-lg h-[600px] object-contain aspect-[9/16]" alt="Thumbnail" />
+                )}
             </CardContent>
             <div className="flex px-4 items-center space-x-4 my-2 w-full">
                 <div className="flex gap-2 items-center">
@@ -166,7 +194,13 @@ export default function ReelCard({ reel, setReels }) {
                 </div>
             </div>
             <ReelViewModal open={open} onClose={onClose} reelId={reel.id} />
-            <ReportModal onClose={handleReportModal} open={reportModalOpen} handleReportValueChange={handleReportValueChange} submitReport={submitReport} reportReason={reportReason} />
+            <ReportModal
+                onClose={handleReportModal}
+                open={reportModalOpen}
+                handleReportValueChange={handleReportValueChange}
+                submitReport={submitReport}
+                reportReason={reportReason}
+            />
         </Card>
     );
 }

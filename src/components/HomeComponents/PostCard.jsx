@@ -115,7 +115,7 @@ export default function PostCard({ post, setPosts }) {
       </Link>
       <CardContent className="px-4 py-2">
         <p className="text-muted-foreground/70">{post?.content}</p>
-        <img src={post?.image} alt="Post content" className="w-full rounded-lg object-contain h-96" />
+        <img src={post?.image} onDoubleClick={toggleLike} alt="Post content" className="w-full rounded-lg object-contain h-96" />
       </CardContent>
       <div className="flex px-4 items-center space-x-4 my-2 w-full">
         <div className="flex gap-2 items-center">

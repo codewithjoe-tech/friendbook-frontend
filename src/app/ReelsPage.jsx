@@ -1,15 +1,15 @@
-import ReelCard from '@/components/HomeComponents/ReelCard'; 
 import React, { useState, useEffect } from 'react';
 import { getCookie } from '@/utils';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import ReelCardSkelton from '@/components/HomeComponents/ReelCardSkelton'; 
+import ReelCard from '@/components/HomeComponents/ReelCard';
+import ReelCardSkelton from '@/components/HomeComponents/ReelCardSkelton';
 
 const ReelsPage = () => {
-  const [reels, setReels] = useState([]); 
+  const [reels, setReels] = useState([]);
   const [count, setCount] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const access = getCookie('accessToken');
-  const initialUrl = `${import.meta.env.VITE_API_URL}/api/profile/recommend/reels/`; 
+  const initialUrl = `${import.meta.env.VITE_API_URL}/api/profile/recommend/reels/`;
   const [url, setUrl] = useState(initialUrl);
 
   const fetchReels = async () => {
@@ -22,10 +22,9 @@ const ReelsPage = () => {
         },
       });
       const data = await response.json();
-      console.log(data)
 
       if (response.ok) {
-        setReels((prevReels) => [...prevReels, ...data.results]); 
+        setReels((prevReels) => [...prevReels, ...data.results]);
         setCount((prevCount) => prevCount + data.results.length);
         setHasMore(reels.length < data.count);
         setUrl(data.next);
@@ -38,25 +37,20 @@ const ReelsPage = () => {
   };
 
   useEffect(() => {
-    fetchReels(); 
+    fetchReels();
   }, []);
 
   return (
     <div id="scrollableDiv" className="flex flex-col gap-10 w-full py-4 h-[85vh] mt-10 overflow-y-auto">
       <InfiniteScroll
         dataLength={count}
-        next={fetchReels} 
+        next={fetchReels}
         hasMore={hasMore}
         scrollableTarget="scrollableDiv"
-        loader={
-          <>
-            <ReelCardSkelton />
-           
-          </>
-        }
+        loader={<ReelCardSkelton />}
       >
         {reels.map((reel) => (
-          <ReelCard reel={reel} key={reel.id} setReels={setReels} /> 
+          <ReelCard reel={reel} key={reel.id} setReels={setReels} />
         ))}
       </InfiniteScroll>
     </div>

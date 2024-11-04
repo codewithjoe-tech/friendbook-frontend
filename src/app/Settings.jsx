@@ -1,21 +1,27 @@
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from "@/components/ui/switch";
+import { Label } from '@/components/ui/label';
 import { showToast } from '@/redux/Slices/ToastSlice';
 import { setProfile, updateUserImage } from '@/redux/Slices/UserSlice/UserSlice';
 import { getCookie } from '@/utils';
 import { PlusCircleIcon } from 'lucide-react';
-import React, { useState } from 'react';
-import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { useSelector } from 'react-redux';
+import SmallSpinner from '@/components/common/SmallSpinner';
 
 const Settings = () => {
-    const { userImage, user, userBio, gender } = useSelector((state) => state.users);
+    const { userImage, user, userBio, gender, privateAcc } = useSelector((state) => state.users);
     const [form, setForm] = useState({
-        bio: userBio|| "" ,
-        gender: gender 
+        bio: userBio || "",
+        gender: gender
     });
+    const [privateLoading, setPrivateLoading] = useState(false)
+    const [settingsLoading, setSettingsLoading] = useState(false)
+   
+    const maxBioLength = 200;
+    const dispatch = useDispatch();
 
     useEffect(() => {
         setForm({
@@ -23,10 +29,6 @@ const Settings = () => {
             gender: gender || ''
         });
     }, [userBio, gender]);
-    
-
-    const maxBioLength = 200;
-    const dispatch = useDispatch();
 
     const profilePicUpdate = async (profilePic) => {
         const access = getCookie('accessToken');
@@ -66,11 +68,12 @@ const Settings = () => {
     };
 
     const handleSubmit = async () => {
+        setSettingsLoading(true)
         const access = getCookie('accessToken');
         const formData = new FormData();
         formData.append('bio', form.bio);
         formData.append('gender', form.gender);
-    
+
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/update/me`, {
                 method: 'PATCH',
@@ -93,16 +96,49 @@ const Settings = () => {
             }
         } catch (error) {
             dispatch(showToast({ message: error.message, type: "e" }));
+        }finally{
+            setSettingsLoading(false)
         }
     };
+
+    const onPrivateChange = async (e) => {
+        setPrivateLoading(true)  
+        const isPrivate = e;
+  
     
+        const access = getCookie('accessToken'); 
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/update/me`, {
+                method: 'PATCH',
+                headers: {
+                    Authorization: `Bearer ${access}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ isPrivate }),
+            });
+    
+            const res = await response.json();
+            console.log(res)
+            if (!response.ok) {
+                throw new Error(res.message);
+            } else {
+                dispatch(showToast({ message: 'Privacy setting updated successfully', type: "s" }));
+                dispatch(setProfile({ isPrivate: res.isPrivate }));
+            }
+        } catch (error) {
+            dispatch(showToast({ message: error.message, type: "e" }));
+         
+        }finally{
+            setPrivateLoading(false)
+        }
+    };
 
     return (
-        <>
-            <div className="w-[40rem] mx-auto flex flex-col mt-10">
-                <h1 className="text-white text-4xl my-5">Settings</h1>
-                <div className="flex flex-col items-center">
-                    <div className="mt-6 rounded-lg p-6 w-[40rem] bg-muted/40">
+        <div className="w-[40rem] mx-auto flex flex-col mt-10">
+            <h1 className="text-white text-4xl my-5">Settings</h1>
+            <div className="flex flex-col items-center">
+                <div className="mt-6 rounded-lg p-6 w-[40rem] bg-muted/40">
+                    <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-4">
                             <div className="relative">
                                 <img
@@ -126,6 +162,16 @@ const Settings = () => {
                                 <h2 className="text-white text-2xl font-bold">{user?.full_name}</h2>
                                 <p className="text-gray-400">@{user?.username}</p>
                             </div>
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                            {
+                                !privateLoading ?
+                                <Switch checked={privateAcc} onCheckedChange={onPrivateChange} />
+                                :(<>
+                                <SmallSpinner size='sm' />
+                                </>)
+                            }
+                            <Label>{privateAcc ? "Private" : "Public"}</Label>
                         </div>
                     </div>
                 </div>
@@ -159,12 +205,17 @@ const Settings = () => {
                         </div>
 
                         <div className="flex justify-between mt-4">
-                            <Button className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2" onClick={handleSubmit}>Save</Button>
+                            <Button disabled={settingsLoading} className="bg-pink-500 select-none disabled:bg-pink-800 hover:bg-pink-600 text-white px-4 py-2" onClick={handleSubmit}>
+                                
+                                {
+                                    settingsLoading ? <SmallSpinner size='xs' color='white' /> : "Save"
+                                }
+                            </Button>
                         </div>
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 

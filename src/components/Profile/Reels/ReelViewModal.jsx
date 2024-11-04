@@ -89,6 +89,8 @@ const ReelViewModal = ({ reelId, open, onClose, selectedTab, commentId, replySta
             ref={videoRef}
               src={reel.video || 'https://via.placeholder.com/400.mp4'}
               alt="Reel"
+              preload='none'
+              poster={reel.thumbnail || 'https://via.placeholder.com/400.png'}
              
               className="w-full h-auto object-contain rounded-md"
             />

@@ -16,8 +16,9 @@ const ReelsCard = ({reel , handleSetReelid}) => {
                 <video
                   className="h-48 w-full object-cover md:w-48 md:h-60"
                   src={reel.video}
-               
+               preload = "none"
                   alt="Reel"
+                  poster={reel.thumbnail}
                 />
               </div>
             )}
