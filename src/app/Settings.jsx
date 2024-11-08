@@ -163,15 +163,15 @@ const Settings = () => {
                                 <p className="text-gray-400">@{user?.username}</p>
                             </div>
                         </div>
-                        <div className="flex flex-col items-center gap-1">
+                        <div className="flex flex-col items-center gap-1 cursor-pointer">
                             {
                                 !privateLoading ?
-                                <Switch checked={privateAcc} onCheckedChange={onPrivateChange} />
+                                <Switch id='private'  checked={privateAcc} onCheckedChange={onPrivateChange} />
                                 :(<>
                                 <SmallSpinner size='sm' />
                                 </>)
                             }
-                            <Label>{privateAcc ? "Private" : "Public"}</Label>
+                            <Label htmlFor='private' className="cursor-pointer" >{privateAcc ? "Private" : "Public"}</Label>
                         </div>
                     </div>
                 </div>

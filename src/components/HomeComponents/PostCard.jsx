@@ -124,8 +124,8 @@ export default function PostCard({ post, setPosts }) {
           </p>
           <p>{post?.like_count}</p>
         </div>
-        <div className="flex gap-2 items-center">
-          <p className="flex items-center cursor-pointer" onClick={onClose}>
+        <div className="flex gap-2 items-center cursor-pointer">
+          <p className="flex items-center " onClick={onClose}>
             <MessageCircle className="h-6 w-6" />
           </p>
           <p>{post?.comment_count}</p>

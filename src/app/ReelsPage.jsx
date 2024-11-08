@@ -26,7 +26,7 @@ const ReelsPage = () => {
       if (response.ok) {
         setReels((prevReels) => [...prevReels, ...data.results]);
         setCount((prevCount) => prevCount + data.results.length);
-        setHasMore(reels.length < data.count);
+        setHasMore(!!data.next); // Set to true if there's a next page
         setUrl(data.next);
       } else {
         console.error('Failed to fetch reels');
@@ -41,17 +41,27 @@ const ReelsPage = () => {
   }, []);
 
   return (
-    <div id="scrollableDiv" className="flex flex-col gap-10 w-full py-4 h-[85vh] mt-10 overflow-y-auto">
+    <div
+      id="scrollableDiv"
+      className="flex flex-col gap-10 w-full py-4 h-[80vh] mt-5 overflow-y-scroll"
+      // style={{ minHeight: '100vh' }} 
+    >
       <InfiniteScroll
         dataLength={count}
         next={fetchReels}
         hasMore={hasMore}
         scrollableTarget="scrollableDiv"
         loader={<ReelCardSkelton />}
+        endMessage={
+          reels.length === 1 && !hasMore ? (
+            <p className="text-center mt-4">No more reels to load</p>
+          ) : null
+        }
       >
         {reels.map((reel) => (
           <ReelCard reel={reel} key={reel.id} setReels={setReels} />
         ))}
+        {reels.length === 1 && hasMore && <ReelCardSkelton />}
       </InfiniteScroll>
     </div>
   );

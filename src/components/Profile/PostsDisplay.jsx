@@ -4,7 +4,7 @@ import ProfilePostSkelton from '../common/ProfilePostSkelton';
 
 const PostsDisplay = ({ posts, handleSetPostid, loading }) => {
     return (
-        <div className={posts.length === 0 ? "h-[50rem] mt-10 w-[60rem] mx-auto" : "mt-10 w-[60rem] mx-auto"}>
+        <div className={posts.length <5 ? "h-[40rem] mt-10 w-[60rem] mx-auto" : "mt-10 w-[60rem] mx-auto"}>
             <h1 className="text-3xl">Posts</h1>
             <div className="post-container flex w-full mt-7 flex-wrap">
                 {loading ? (

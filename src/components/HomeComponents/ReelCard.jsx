@@ -138,7 +138,7 @@ export default function ReelCard({ reel, setReels }) {
     }
 
     return (
-        <Card className="max-w-md mx-auto border rounded-lg shadow-sm mt-5" ref={cardRef}>
+        <Card className="max-w-md mx-auto border rounded-lg shadow-sm mt-9" ref={cardRef}>
             <Link to={`/profile/${reel?.profile?.username}`}>
                 <CardHeader className="flex px-4 pt-4 pb-2">
                     <div className="flex items-center gap-1">

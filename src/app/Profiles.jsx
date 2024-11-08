@@ -23,7 +23,8 @@ const OtherProfile = () => {
         is_following: null,
         followersCount: null,
         followingCount: null,
-        posts_count: 0
+        posts_count: 0,
+        isPrivate : null
     });
 
     const navigate = useNavigate();
@@ -65,6 +66,7 @@ const OtherProfile = () => {
 
     const { id } = useParams();
     const { profileId, user } = useSelector((state) => state.users);
+    console.log(id === user?.username)
 
     const goToChat = async () => {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/chat-room/${id}`, {
@@ -77,10 +79,11 @@ const OtherProfile = () => {
     const followUser = async () => {
         try {
             const data = await dispatch(followUserThunk(id)).unwrap();
+            console.log(data)
             setUserData({
                 ...userData,
-                is_following: !userData.is_following,
-                followersCount: userData.is_following ? userData.followersCount - 1 : userData.followersCount + 1
+                is_following: data.follow_status,
+                followersCount: userData.is_following === 'n' ? userData.followersCount + 1 : userData.followersCount - 1
             });
             dispatch(showToast({ message: data.message, type: "s" }));
         } catch (error) {
@@ -95,6 +98,7 @@ const OtherProfile = () => {
                     headers: { Authorization: `Bearer ${access}` }
                 });
                 const data = await response.json();
+                console.log(data)
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 setUserData({
                     user: data.user,
@@ -103,7 +107,8 @@ const OtherProfile = () => {
                     is_following: data.is_following,
                     followersCount: data.followers_count,
                     followingCount: data.following_count,
-                    posts_count: data.posts_count
+                    posts_count: data.posts_count,
+                    isPrivate : data.isPrivate
                 });
             } catch (error) {
                 console.error('Error fetching user details:', error);
@@ -116,25 +121,26 @@ const OtherProfile = () => {
     const deleteReel = (id) => setReels(reels.filter((reel) => reel.id !== id));
 
     const fetchPosts = async () => {
+        if (userData.is_following !== 'f' && id !== user?.username && userData.isPrivate) return
         setPostLoading(true);
-    
+
         if (!id || !access) {
             console.error("Missing required parameters");
             return;
         }
-    
+
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/posts/${id}`, {
                 headers: { Authorization: `Bearer ${access}` }
             });
-    
+
             if (!response.ok) {
                 console.error("Failed to fetch posts:", response.status, await response.text());
                 return;
             }
-    
+
             const res = await response.json();
-    
+
             if (Array.isArray(res)) setPosts(res);
             else console.error("Unexpected response format:", res);
         } catch (error) {
@@ -143,41 +149,42 @@ const OtherProfile = () => {
             setPostLoading(false);
         }
     };
-    
+
 
     const fetchReels = async () => {
+        if (userData.is_following !== 'f' && id !== user.username) return
         setPostLoading(true)
         if (!id || !access) {
             console.error("Missing required parameters");
             return;
         }
-    
+
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/reels/${id}`, {
                 headers: { Authorization: `Bearer ${access}` }
             });
-    
+
             if (!response.ok) {
                 console.error("Failed to fetch reels:", response.status, await response.text());
                 return;
             }
-    
+
             const res = await response.json();
-            
+
             if (Array.isArray(res)) setReels(res);
             else console.error("Unexpected response format:", res);
         } catch (error) {
             console.error("Error fetching reels:", error);
-        }finally{
+        } finally {
             setPostLoading(false)
         }
     };
-    
+
 
     useEffect(() => {
         if (selectedTab === 'posts') fetchPosts();
         else fetchReels();
-    }, [id, selectedTab]);
+    }, [id, selectedTab , user]);
 
     const handleFollowing = () => {
         setUrl(`${import.meta.env.VITE_API_URL}/api/profile/following/${id}`);
@@ -201,7 +208,7 @@ const OtherProfile = () => {
                 </div>
                 <div className="ml-8 ">
                     <div className="flex flex-col justify-center">
-                        <h2 className="text-3xl font-bold mr-2">{userData?.user?.full_name|| "No User Found"}</h2>
+                        <h2 className="text-3xl font-bold mr-2">{userData?.user?.full_name || "No User Found"}</h2>
                         <span className="text-gray-400">@{userData?.user?.username || "No user"}</span>
                     </div>
                     <p className="mt-2 w-[45rem] text-gray-300">{userData?.userBio || ""}</p>
@@ -223,18 +230,22 @@ const OtherProfile = () => {
                         <div className="ml-auto space-x-4">
                             {id !== user?.username ? (
                                 <>
-                                  { userData.user && <> <Button
-                                        onClick={followUser}
-                                        className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg"
-                                    >
-                                        {userData?.is_following ? "UnFollow" : "Follow"}
-                                    </Button>
-                                    <Button
-                                        onClick={goToChat}
-                                        className="bg-pink-700 text-white px-4 py-2 rounded-lg"
-                                    >
-                                        Message
-                                    </Button></>}
+                                    {userData.user && (
+                                        <>
+                                            <Button
+                                                onClick={followUser}
+                                                className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg hover:bg-pink-100"
+                                            >
+                                                {userData?.is_following === 'f' ? "UnFollow" : userData?.is_following === 'r' ? "Requested" : "Follow"}
+                                            </Button>
+                                           {userData.is_following === 'f' &&  <Button
+                                                onClick={goToChat}
+                                                className="bg-pink-700 text-white px-4 py-2 rounded-lg"
+                                            >
+                                                Message
+                                            </Button>}
+                                        </>
+                                    )}
                                 </>
                             ) : (
                                 <Link to="/settings" className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg">
@@ -242,31 +253,41 @@ const OtherProfile = () => {
                                 </Link>
                             )}
                         </div>
+
                     </div>
                 </div>
             </div>
-            <div className="flex justify-center mt-5">
-                <button
-                    onClick={() => setSelectedTab("posts")}
-                    className={`px-4 py-2 ${selectedTab === "posts" ? "text-pink-700 font-semibold" : "text-gray-500"}`}
-                >
-                    Posts
-                </button>
-                <button
-                    onClick={() => setSelectedTab("reels")}
-                    className={`px-4 py-2 ${selectedTab === "reels" ? "text-pink-700 font-semibold" : "text-gray-500"}`}
-                >
-                    Reels
-                </button>
-            </div>
-            {selectedTab === "posts" ? (
-                <PostsDisplay posts={posts} handleSetPostid={handleSetPostid} loading ={postLoading} />
-            ) : (
-                <ReelsDisplay reels={reels} handleSetReelid={handleSetReelid} loading ={postLoading}/>
-            )}
-            <PostViewModal open={OpenPostView} onClose={handleOpenClose} postid={PostId} postDelete={deletePost} />
-            <ReelViewModal open={OpenReelView} onClose={handleReelOpenClose} reelId={ReelId} reelDelete={deleteReel} />
-            <FollowersFollowingModal open={followPanelOpen} onClose={followPanelOnChange} url={url} />
+            { (userData.is_following === 'f' || id === user?.username || !userData.isPrivate) ? (
+    <>
+        <div className="flex justify-center mt-5 ">
+            <button
+                onClick={() => setSelectedTab("posts")}
+                className={`px-4 py-2 ${selectedTab === "posts" ? "text-pink-700 font-semibold" : "text-gray-500"}`}
+            >
+                Posts
+            </button>
+            <button
+                onClick={() => setSelectedTab("reels")}
+                className={`px-4 py-2 ${selectedTab === "reels" ? "text-pink-700 font-semibold" : "text-gray-500"}`}
+            >
+                Reels
+            </button>
+        </div>
+        {selectedTab === "posts" ? (
+            <PostsDisplay posts={posts} handleSetPostid={handleSetPostid} loading={postLoading} />
+        ) : (
+            <ReelsDisplay reels={reels} handleSetReelid={handleSetReelid} loading={postLoading} />
+        )}
+        <PostViewModal open={OpenPostView} onClose={handleOpenClose} postid={PostId} postDelete={deletePost} />
+        <ReelViewModal open={OpenReelView} onClose={handleReelOpenClose} reelId={ReelId} reelDelete={deleteReel} />
+        <FollowersFollowingModal open={followPanelOpen} onClose={followPanelOnChange} url={url} />
+    </>
+) : (
+    <div className='mt-10 h-[42rem]'>
+        <p className='text-muted-foreground/60'>Private Account</p>
+    </div>
+)}
+
         </div>
     );
 };

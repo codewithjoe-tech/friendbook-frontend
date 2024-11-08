@@ -12,7 +12,7 @@ import { getCookie } from '@/utils';
 
 const CallModal = () => {
   const dispatch = useDispatch();
-  const { isInCall, caller, receiver,ws } = useSelector((state) => state.call);
+  const { isInCall, caller, receiver, ws } = useSelector((state) => state.call);
   const { user } = useSelector((state) => state.users);
   
   const [localStream, setLocalStream] = useState(null);
@@ -21,14 +21,17 @@ const CallModal = () => {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerConnection = useRef(null);
-  const iceCandidatesQueue = useRef([]);  
+  const iceCandidatesQueue = useRef([]);
   const callWs = useRef(null);
+  const endButtonRef = useRef()
 
   useEffect(() => {
     if (isInCall) {
       startVideoCall();
     }
-    return () => endVideoCall();
+    return () => {
+      if (!isInCall) endVideoCall();
+    };
   }, [isInCall]);
 
   const startVideoCall = async () => {
@@ -45,12 +48,7 @@ const CallModal = () => {
 
     callWs.current.onmessage = (message) => handleSignalingData(JSON.parse(message.data));
 
-    const stream = await navigato
-    
-    
-    
-    
-    r.mediaDevices.getUserMedia({ video: true, audio: true });
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     setLocalStream(stream);
     if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
@@ -93,6 +91,7 @@ const CallModal = () => {
       }));
     }
   };
+
   const handleSignalingData = async (data) => {
     if (data.type === 'OFFER') {
       await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.offer));
@@ -122,36 +121,63 @@ const CallModal = () => {
       }
   
     } else if (data.type === 'END_CALL') {
-      endVideoCall();
+      endButtonRef.current.click()
+      // endVideoCall();
     }
   };
-  
+
   const endVideoCall = () => {
-    
     if (callWs.current && callWs.current.readyState === WebSocket.OPEN) {
       callWs.current.send(JSON.stringify({
         action: "end_call",
         type: "END_CALL",
-        target_username: user.username === caller ? receiver : caller,
+        target_username: user?.username === caller ? receiver : caller,
       }));
     }
-  
-    localStream?.getTracks().forEach((track) => track.stop());
-    setLocalStream(null);
-  
-    remoteStream?.getTracks().forEach((track) => track.stop());
-    setRemoteStream(null);
-  
-    peerConnection.current?.close();
-    peerConnection.current = null;
-  
+
+    
+    if (remoteStream) {
+      remoteStream.getTracks().forEach((track) => track.stop());
+      setRemoteStream(null);
+      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+    }
+    if (localStream) {
+
+      console.log('cleaning localstream')
+      localStream.getTracks().forEach((track) => track.stop());
+      setLocalStream(null);
+      if (localVideoRef.current) localVideoRef.current.srcObject = null;
+    }
+
+    if (peerConnection.current) {
+      peerConnection.current.ontrack = null;
+      peerConnection.current.onicecandidate = null;
+      peerConnection.current.close();
+      peerConnection.current = null;
+    }
+
     if (callWs.current) {
+      callWs.current.onclose = () => console.log("WebSocket closed");
       callWs.current.close();
       callWs.current = null;
     }
-  
+
     dispatch(endCall());
   };
+  useEffect(() => {
+  //   console.log(localStream)
+  // if(!isInCall){
+  //   if (localStream) {
+
+  //     console.log('cleaning localstream')
+  //     localStream.getTracks().forEach((track) => track.stop());
+  //     setLocalStream(null);
+  //     if (localVideoRef.current) localVideoRef.current.srcObject = null;
+  //   }
+  // }
+  console.log(localStream)
+  }, [callWs.current])
+  
   
   return (
     <Dialog open={isInCall}>
@@ -168,7 +194,7 @@ const CallModal = () => {
         <div className="flex flex-col items-center space-y-4">
           <video ref={localVideoRef} autoPlay muted className="w-full max-w-sm h-48 rounded-lg border border-gray-700" />
           <video ref={remoteVideoRef} autoPlay className="w-full max-w-sm h-48 rounded-lg border border-gray-700" />
-          <button onClick={endVideoCall} className="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+          <button ref={endButtonRef} onClick={endVideoCall} className="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
             End Call
           </button>
         </div>

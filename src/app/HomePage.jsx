@@ -25,11 +25,11 @@ const HomePage = () => {
         },
       });
       const data = await response.json();
-
+      console.log(data)
       if (response.ok) {
         setPosts((prevPosts) => [...prevPosts, ...data.results]);
         setCount((prevCount) => prevCount + data.results.length);
-        setHasMore(posts.length < data.count);
+        setHasMore(data?.next?true:false);
         setUrl(data.next); 
       } else {
         console.error('Failed to fetch posts');

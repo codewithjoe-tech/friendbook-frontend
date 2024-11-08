@@ -67,7 +67,7 @@ export const followUserThunk = createAsyncThunk(
                 throw new Error(data.error || 'Failed to follow user');
             }
 
-            return { message: data.message }; 
+            return { message: data.message , follow_status : data.follow_status }; 
         } catch (error) {
             return rejectWithValue(error.message);
         }
