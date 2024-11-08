@@ -4,6 +4,7 @@ import UserReducer from "./Slices/UserSlice/UserSlice"
 import { thunk } from "redux-thunk"
 import PostReducer from './Slices/PostSlice'
 import CallReducer from "./Slices/CallSlice"
+import NotificationReducer from "./Slices/NotificationSlice"
 
 
 export default configureStore({
@@ -11,7 +12,8 @@ export default configureStore({
         toast:toastReducer,
         users:UserReducer,
         post: PostReducer,
-        call:CallReducer
+        call:CallReducer,
+        notification : NotificationReducer
     },
     middleware : ()=>[thunk]
 })

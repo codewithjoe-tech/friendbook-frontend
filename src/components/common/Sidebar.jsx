@@ -29,6 +29,7 @@ import { setModalOpen } from '@/redux/Slices/PostSlice'
 import { Button } from '../ui/button'
 import SearchUsers from './SearchUsers'
 import Notification from './Notification'
+import { NotiOpen } from '@/redux/Slices/NotificationSlice'
 
 
 
@@ -38,13 +39,14 @@ const Sidebar = () => {
     const postModalOpen = useSelector((state)=>state.post.postModalOpen)
     const [openSearch, setOpenSearch] = useState(false)
     const [openNotification, setOpenNotification] = useState(false)
+    
 
     const toggleSearch = () => {
         setOpenSearch(!openSearch)
     }
   
     const toggleNotification = () => {
-        setOpenNotification(!openNotification)
+        dispatch(NotiOpen())
     }
   
     const dispatch = useDispatch()
@@ -109,7 +111,7 @@ const Sidebar = () => {
                 </div>
             </div>
                      <SearchUsers open={openSearch} onClose={toggleSearch} />
-                     <Notification onClose={toggleNotification} open={openNotification} />
+                     <Notification   />
 
         </div>
     )

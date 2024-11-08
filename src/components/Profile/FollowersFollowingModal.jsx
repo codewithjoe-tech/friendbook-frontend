@@ -123,14 +123,7 @@ const FollowersFollowingModal = ({open,onClose, url}) => {
                             ? 'Requested'
                             : 'Follow'}
                     </Button>
-                    {user?.is_following === 'f' && (
-                        <Button
-                            // onClick={goToChat}
-                            className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition duration-200 hover:shadow"
-                        >
-                            Message
-                        </Button>
-                    )}
+                  
                 </>
             )}
         </>

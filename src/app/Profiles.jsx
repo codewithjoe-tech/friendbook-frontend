@@ -115,6 +115,8 @@ const OtherProfile = () => {
             }
         };
         fetchUserDetails();
+        
+        
     }, [id]);
 
     const deletePost = (id) => setPosts(posts.filter((post) => post.id !== id));
@@ -124,6 +126,7 @@ const OtherProfile = () => {
         if (userData.is_following !== 'f' && id !== user?.username && userData.isPrivate) return
         setPostLoading(true);
 
+        console.log("Working")
         if (!id || !access) {
             console.error("Missing required parameters");
             return;
@@ -150,6 +153,8 @@ const OtherProfile = () => {
         }
     };
 
+  
+    
 
     const fetchReels = async () => {
         if (userData.is_following !== 'f' && id !== user.username) return
@@ -184,7 +189,7 @@ const OtherProfile = () => {
     useEffect(() => {
         if (selectedTab === 'posts') fetchPosts();
         else fetchReels();
-    }, [id, selectedTab , user]);
+    }, [id, selectedTab , user , userData]);
 
     const handleFollowing = () => {
         setUrl(`${import.meta.env.VITE_API_URL}/api/profile/following/${id}`);

@@ -6,6 +6,8 @@ import StartCalling from '@/components/Call/StartCalling'
 import Sidebar from '@/components/common/Sidebar'
 import Toast from '@/components/common/Toast'
 import UploadModal from '@/components/common/UploadModal'
+import { Toaster } from '@/components/ui/toaster'
+import { useToast } from '@/hooks/use-toast'
 import { receiveCallRequest, setWebSocket, closeWebSocket, declineCall, acceptCall } from '@/redux/Slices/CallSlice'
 import { setModalOpen } from '@/redux/Slices/PostSlice'
 import { getCookie } from '@/utils'
@@ -21,7 +23,8 @@ const MainLayout = () => {
     const { user } = useSelector((state) => state.users)
     const call = useSelector((state) => state.call)
     const audioRef = useRef(new Audio('/callsound.wav'))
-
+    const notificationWs = useRef(null)
+    const {toast } = useToast()
     const handleAudioPlay = () => {
         audioRef.current.loop = true
         audioRef.current.play().catch((error) => {
@@ -83,6 +86,26 @@ const MainLayout = () => {
         }
     }, [access, user?.username, dispatch])
 
+
+    useEffect(() => {
+        notificationWs.current = new WebSocket(
+            `${import.meta.env.VITE_WS_URL}/ws/notification/${user?.username}/?token=${access}`
+        )
+        notificationWs.current.onopen = (e)=>{
+            console.log("normal Notification connected!")
+        }
+
+        notificationWs.current.onmessage = (e)=>{
+            const data = JSON.parse(JSON.parse(e.data))
+            const content_type = data?.content_type
+            
+            const title = content_type === "post" || content_type==="reels" ? "Post" : content_type === 'like' || content_type==="reellike" ? "Like" : content_type==='comment' || content_type==='reelcomment' ? "Comment" : data?.content_object?.accepted ? "New Follower" : "Follow Request"
+            console.log(data)
+            toast({id: data?.content_id , title :title  , description : data?.content , image:data?.content_object?.profile_picture , username : data?.content_object?.username })
+        }
+    }, [access , user?.username , dispatch])
+    
+
     useEffect(() => {
         if (!call.incomingCall) {
             handleAudioStop()
@@ -104,6 +127,7 @@ const MainLayout = () => {
                     {postModalOpen && <UploadModal isOpen={postModalOpen} onClose={() => { dispatch(setModalOpen()) }} />}
                     <Outlet />
                 </div>
+                <Toaster />
             </Authenticate>
         </>
     )
