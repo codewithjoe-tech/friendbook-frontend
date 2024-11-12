@@ -7,6 +7,8 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
+import SmallSpinner from "./SmallSpinner";
+import { useNavigate } from "react-router-dom";
 
 const UploadModal = ({ isOpen, onClose }) => {
     const [hideLikes, setHideLikes] = useState(false);
@@ -15,8 +17,10 @@ const UploadModal = ({ isOpen, onClose }) => {
     const [filePreview, setFilePreview] = useState(null);
     const [isVideo, setIsVideo] = useState(false);
     const [postContent, setPostContent] = useState("");
-    const profileId = useSelector((state) => state.users.profileId);
+    const {profileId, user} = useSelector((state) => state.users);
     const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false)
+    const navigate = useNavigate()
 
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
@@ -40,6 +44,7 @@ const UploadModal = ({ isOpen, onClose }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         const formData = new FormData();
         formData.append("content", postContent);
         formData.append("hide_likes", hideLikes);
@@ -67,11 +72,14 @@ const UploadModal = ({ isOpen, onClose }) => {
                 dispatch(setPost(res));
                 dispatch(showToast({ message: `${isVideo?"Reel" :"Post"} uploaded successfully`, type: "s" }));
                 onClose();
+                navigate( `/profile/${user.username}`)
             } else {
                 dispatch(showToast({ message: `Failed to upload post: ${res.detail || "Unknown error"}`, type: "e" }));
             }
         } catch (error) {
             dispatch(showToast({ message: "An error occurred while uploading the post", type: "e" }));
+        }finally{
+            setLoading(false)
         }
     };
 
@@ -159,9 +167,12 @@ const UploadModal = ({ isOpen, onClose }) => {
                     <div className="p-4 border-t border text-right">
                         <button
                             type="submit"
+                            disabled={loading}
                             className="px-4 py-2 text-blue-600 rounded-md hover:bg-background transition"
                         >
-                            Share
+                            {loading ? <>
+                            <SmallSpinner size="sm" />
+                            </>:"Share"}
                         </button>
                     </div>
                 </form>

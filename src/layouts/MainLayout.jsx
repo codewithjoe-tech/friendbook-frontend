@@ -53,11 +53,18 @@ const MainLayout = () => {
 
         ws.current.onmessage = (event) => {
             const data = JSON.parse(event.data)
-            console.log(data)
+        
             if (data.type === 'CALL_REQUEST' && data.from !== user?.username) {
-                console.log(data)
-                dispatch(receiveCallRequest({ from: data.from, callerImage: data.profile_picture }))
-                handleAudioPlay()
+                if(call.isInCall){
+                    ws.send(JSON.stringify({action:"reject",target_username:call.incomingCall.from}))
+                    dispatch(declineCall())
+                
+                }else{
+
+                
+                    dispatch(receiveCallRequest({ from: data.from, callerImage: data.profile_picture }))
+                    handleAudioPlay()
+                }
             }
 
             if(data.type === "CALL_REJECTED" ){
@@ -69,7 +76,7 @@ const MainLayout = () => {
             }
             if (data.type === "CALL_ACCEPTED"){
                 
-                console.log(data)
+            
                 dispatch(acceptCall())
             }
         }
@@ -96,11 +103,12 @@ const MainLayout = () => {
         }
 
         notificationWs.current.onmessage = (e)=>{
-            const data = JSON.parse(JSON.parse(e.data))
+            const data = JSON.parse(e.data)
+        
             const content_type = data?.content_type
             
             const title = content_type === "post" || content_type==="reels" ? "Post" : content_type === 'like' || content_type==="reellike" ? "Like" : content_type==='comment' || content_type==='reelcomment' ? "Comment" : data?.content_object?.accepted ? "New Follower" : "Follow Request"
-            console.log(data)
+        
             toast({id: data?.content_id , title :title  , description : data?.content , image:data?.content_object?.profile_picture , username : data?.content_object?.username })
         }
     }, [access , user?.username , dispatch])

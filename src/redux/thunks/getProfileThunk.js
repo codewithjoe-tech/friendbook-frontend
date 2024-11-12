@@ -29,7 +29,7 @@ export const profileThunk = createAsyncThunk(
               
                 if (profile_picture){
 
-                    dispatch(updateUserImage(`${import.meta.env.VITE_API_URL}${profile_picture}` ));
+                    dispatch(updateUserImage(profile_picture));
                 }else{
                     dispatch(updateUserImage('/user.webp'));
                 }

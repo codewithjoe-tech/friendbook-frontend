@@ -3,11 +3,13 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from 
 import { Paperclip } from "lucide-react";
 import { Button } from "../ui/button";
 import { getCookie } from "@/utils";
+import SmallSpinner from "../common/SmallSpinner";
 
 const UploadModal = ({roomName , ws}) => {
   const [file, setFile] = useState(null);
   const [fileType, setFileType] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false)
 
 
   const sendWsMessage = (content_type, content) => {
@@ -28,6 +30,7 @@ const UploadModal = ({roomName , ws}) => {
   };
 const access = getCookie("accessToken");
 const handleUpload = async () => {
+  setLoading(true);
   if (!file) return;
 
   const formData = new FormData();
@@ -59,11 +62,12 @@ const handleUpload = async () => {
       setIsModalOpen(false);
       setFile(null);
       setFileType("");
+      setLoading(false)
   }
 };
 
   return (
-    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen} >
       <DialogTrigger asChild>
         <label className="mx-2 cursor-pointer" onClick={() => setIsModalOpen(true)}>
           <Paperclip />
@@ -81,16 +85,18 @@ const handleUpload = async () => {
             className="file-input"
           />
           {file && (
-            <div className="mt-4">
+            <div className="mt-4 flex justify-center items-center">
               {fileType === "image" ? (
-                <img src={URL.createObjectURL(file)} alt="Preview" className="max-w-full h-auto rounded" />
+                <img src={URL.createObjectURL(file)} alt="Preview" className="max-w-full h-96 rounded" />
               ) : (
-                <video controls src={URL.createObjectURL(file)} className="max-w-full h-auto rounded" />
+                <video controls src={URL.createObjectURL(file)} className="max-w-full h-96  rounded" />
               )}
             </div>
           )}
-          <Button className="" onClick={handleUpload}>
-            Upload
+          <Button disabled={loading} className="" onClick={handleUpload}>
+            {
+          loading ? <><SmallSpinner /></> : 'Upload'
+          }
           </Button>
         </div>
       </DialogContent>

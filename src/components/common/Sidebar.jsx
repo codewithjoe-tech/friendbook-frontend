@@ -99,11 +99,7 @@ const Sidebar = () => {
                             </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="bg-muted text-forground w-[16rem] ml-4">
-                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                          
-                            <DropdownMenuItem>Billing</DropdownMenuItem>
-                            <DropdownMenuItem>Team</DropdownMenuItem>
+                           
                             <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

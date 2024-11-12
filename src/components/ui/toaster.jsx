@@ -20,13 +20,12 @@ export function Toaster() {
     <ToastProvider>
       {toasts.map(function ({ id, title, description, image, username, content, action, ...props }) {
 
-        console.log(id, title, description, image, username, content)
         return (
           <Toast key={id} {...props} onClick={()=>dispatch(NotiOpen())}>
             <div className="flex items-center gap-4">
               <Avatar className="w-10 h-10 flex ">
                 {image ? (
-                  <AvatarImage src={image} alt={username} />
+                  <AvatarImage src={image.replace(`${import.meta.env.VITE_API_URL}`,"")} alt={username} />
                 ) : (
                   <AvatarFallback>{username?.charAt(0).toUpperCase()}</AvatarFallback>
                 )}

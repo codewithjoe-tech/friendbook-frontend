@@ -12,6 +12,7 @@ import UploadModal from "./UploadModal";
 import { useDispatch } from "react-redux";
 import { startCall } from "@/redux/Slices/CallSlice";
 
+
 const ChatArea = ({ open, handleOpen }) => {
   const [isChatRoom, setIsChatRoom] = useState(false);
   const [chatRoom, setChatRoom] = useState({});
@@ -22,6 +23,42 @@ const ChatArea = ({ open, handleOpen }) => {
   const seenWs = useRef(null)
   const callWs = useSelector((state) => state.call.ws);
   const dispatch = useDispatch()
+  const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, messageId: null });
+  const contextMenuRef = useRef(null);
+
+
+  const handleContextMenu = (e, messageId) => {
+    e.preventDefault();
+    setContextMenu({ visible: true, x: e.clientX, y: e.clientY, messageId });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu({ visible: false, x: 0, y: 0, messageId: null });
+  };
+
+  const handleUnsend = () => {
+    const messageId = contextMenu.messageId;
+    if (messageId && ws.current) {
+      ws.current.send(JSON.stringify({ message_type: "delete", content: messageId }));
+      setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== messageId));
+      closeContextMenu();
+    }
+  };
+
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target)) {
+        closeContextMenu();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
 
 
   const { user } = useSelector((state) => state.users);
@@ -38,6 +75,7 @@ const ChatArea = ({ open, handleOpen }) => {
       }
     );
     const data = await response.json();
+    console.log(data)
     if (response.ok) {
       setMessages(data);
       console.log(data)
@@ -77,7 +115,14 @@ const ChatArea = ({ open, handleOpen }) => {
 
         ws.current.onmessage = (event) => {
           const data = JSON.parse(event.data);
-          setMessages((prevMessages) => [...prevMessages, data]);
+          console.log(data)
+          if(data.type=='delete_message'){
+            console.log('deleting message')
+            setMessages(prevMessages => prevMessages.filter((message)=>message.id!=data.message_id))
+          }else{
+
+            setMessages((prevMessages) => [...prevMessages, data]);
+          }
         };
 
         ws.current.onclose = () => {
@@ -92,7 +137,7 @@ const ChatArea = ({ open, handleOpen }) => {
       return () => {
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
           ws.current.close();
-          ws.current = null; 
+          ws.current = null;
         }
       };
     } else {
@@ -102,57 +147,64 @@ const ChatArea = ({ open, handleOpen }) => {
 
 
   useEffect(() => {
-    if(roomName){
-      if(!seenWs.current){
+    const openSeenWebSocket = () => {
+      if (!seenWs.current || seenWs.current.readyState === WebSocket.CLOSED) {
         seenWs.current = new WebSocket(
           `${import.meta.env.VITE_WS_URL}/ws/chat/seen/${roomName}/?token=${access}`
-        )
-
-        seenWs.current.onopen = (event) => {
-          
-          console.log("WebSocket for seen connected!")
-        }
-
-
+        );
+  
+        seenWs.current.onopen = () => {
+          console.log("WebSocket for seen connected!");
+        };
+  
         seenWs.current.onmessage = (event) => {
           const data = JSON.parse(event.data);
           const seenIds = data.seen_message_ids;
-      
           setMessages((prevMessages) =>
             prevMessages.map((message) =>
-              seenIds.includes(message.id)
-                ? { ...message, seen: true }
-                : message
+              seenIds.includes(message.id) ? { ...message, seen: true } : message
             )
           );
         };
-
+  
         seenWs.current.onclose = () => {
-          console.log("WebSocket for seen disconnected")
-        }
-
+          console.log("WebSocket for seen disconnected");
+        };
+  
         seenWs.current.onerror = (error) => {
-          console.error("WebSocket error: ", error)
-        }
-
-
-      }
-    }
-
-    return () => {
-      if (seenWs.current && seenWs.current.readyState === WebSocket.OPEN) {
-        seenWs.current.close();
-        seenWs.current = null; 
+          console.error("WebSocket error: ", error);
+        };
       }
     };
-  }, [roomName])
   
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && roomName) {
+        openSeenWebSocket();
+      } else if (seenWs.current && seenWs.current.readyState === WebSocket.OPEN) {
+        seenWs.current.close();
+        seenWs.current = null;
+        console.log("WebSocket for seen closed due to tab visibility change");
+      }
+    };
+  
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+  if(roomName) openSeenWebSocket();
+  
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (seenWs.current && seenWs.current.readyState === WebSocket.OPEN) {
+        seenWs.current.close();
+      }
+    };
+  }, [roomName, access]);
+  
+
 
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
- 
+
   }, [messages]);
 
   const sendMessage = () => {
@@ -187,16 +239,18 @@ const ChatArea = ({ open, handleOpen }) => {
   };
 
 
-  const VideoCall = (target_username)=>{
-    if(callWs.readyState === WebSocket.OPEN){
-   
-      callWs.send(JSON.stringify({ action:"call_request",target_username  }));
+  const VideoCall = (target_username) => {
+    if (callWs.readyState === WebSocket.OPEN) {
+
+      callWs.send(JSON.stringify({ action: "call_request", target_username }));
       dispatch(startCall({
         caller: user?.username,
         callerProfile: chatRoom?.other_user?.profile_picture,
         receiver: chatRoom?.other_user?.username
-    }));
-   
+      }));
+
+
+
     }
   }
 
@@ -231,8 +285,8 @@ const ChatArea = ({ open, handleOpen }) => {
               </div>
             </div>
             <div className="flex space-x-4">
-              
-              <Button onClick={()=>{VideoCall(chatRoom?.other_user?.username)}} className="text-muted-foreground bg-background/30">
+
+              <Button onClick={() => { VideoCall(chatRoom?.other_user?.username) }} className="text-muted-foreground bg-background/30">
                 <Video />
               </Button>
             </div>
@@ -245,17 +299,16 @@ const ChatArea = ({ open, handleOpen }) => {
                   {message.sender !== user.username ? (
                     <div className="flex space-x-4 items-center">
                       <Link to={`/profile/${message.sender}`}>
-                      <Avatar>
-                        <AvatarImage className="object-cover" src={message?.profile_picture} />
-                        <AvatarFallback>CN</AvatarFallback>
-                      </Avatar>
+                        <Avatar>
+                          <AvatarImage className="object-cover" src={message?.profile_picture} />
+                          <AvatarFallback>CN</AvatarFallback>
+                        </Avatar>
                       </Link>
 
                       <div>
                         <div
-                          className={`p-4 rounded-lg shadow mt-4 ${
-                            message.seen ? "bg-muted/60" : "bg-muted/30"
-                          }`}
+                          className={`p-4 rounded-lg shadow mt-4 ${message.seen ? "bg-muted/60" : "bg-muted/30"
+                            }`}
                         >
                           {message.content_type === "textmessage" && (
                             <p className="text-muted-foreground">
@@ -278,56 +331,76 @@ const ChatArea = ({ open, handleOpen }) => {
                           )}
                         </div>
                         <span className="text-xs text-muted-foreground/60">
-                         {formatTimestamp(message?.timestamp)}
+                          {formatTimestamp(message?.timestamp)}
                         </span>
                       </div>
                     </div>
                   ) : (
-                   <>
-                    <div className="flex justify-end space-x-4 items-center">
-                    <div className="flex flex-col space-y-2 items-end">
-                    <div
-                        className={`p-4 rounded-lg shadow relative ${
-                          message.seen ? "bg-blue-500/60" : "bg-blue-700"
-                        }`}
-                      >
-                        {message.content_type === "textmessage" && (
-                          <p className="text-muted-foreground">
-                            {message?.content_object?.text}
-                          </p>
-                        )}
-                        {message.content_type === "imagemessage" && (
-                          <img
-                            src={message?.content_object?.image}
-                            alt="Image"
-                            className="max-w-xs"
-                          />
-                        )}
-                        {message.content_type === "videomessage" && (
-                          <video
-                            controls
-                            src={message?.content_object?.video}
-                            className="max-w-xs"
-                          />
-                        )}
-                        {message.seen && (
-                          <Check className="absolute bottom-2 right-2 text-muted-foreground" size={16} />
-                        )}
-                      </div>
-                      <span className="text-xs text-muted-foreground/60">
-                         {formatTimestamp(message?.timestamp)}
-                        </span>
-                    </div>
-                      <Avatar>
-                        <AvatarImage className="object-cover" src={message?.profile_picture} />
-                        <AvatarFallback>CN</AvatarFallback>
-                      </Avatar>
-                    
-                    </div>
+                    <>
+                      <div
 
-                    
-                   </>
-                    
+                        className="flex justify-end space-x-4 items-center">
+                        <div className="flex flex-col space-y-2 items-end">
+                          <div  onContextMenu={(e) => message.sender === user.username && handleContextMenu(e, message.id)}
+                            className={`p-4 rounded-lg shadow relative ${message.seen ? "bg-blue-500/60" : "bg-blue-700"
+                              }`}
+                          >
+                            {message.content_type === "textmessage" && (
+                              <p className="text-muted-foreground">
+                                {message?.content_object?.text}
+                              </p>
+                            )}
+                            {message.content_type === "imagemessage" && (
+                              <img
+                                src={message?.content_object?.image}
+                                alt="Image"
+                                className="max-w-xs"
+                              />
+                            )}
+                            {message.content_type === "videomessage" && (
+                              <video
+                                controls
+                                src={message?.content_object?.video}
+                                className="max-w-xs"
+                              />
+                            )}
+
+
+                            <div className=" ">
+                              {message.seen && (
+                                <>
+                                  <Check className="absolute bottom-0 right-2 text-white" size={16} />
+                                  <Check className="absolute bottom-0 right-3 text-white" size={16} />
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-xs text-muted-foreground/60">
+                              {formatTimestamp(message?.timestamp)}
+                            </span>
+                          </div>
+                        </div>
+                        <Avatar>
+                          <AvatarImage className="object-cover" src={message?.profile_picture} />
+                          <AvatarFallback>CN</AvatarFallback>
+                        </Avatar>
+                        {contextMenu.visible && (
+                          <div
+                            ref={contextMenuRef}
+                            style={{ top: contextMenu.y, left: contextMenu.x }}
+                            className="absolute bg-background hover:bg-muted shadow-md rounded p-2 z-10"
+                          >
+                            <button className="text-red-500" onClick={handleUnsend}>Unsend</button>
+                          </div>
+                        )}
+
+
+                      </div>
+
+
+                    </>
+
                   )}
                 </div>
               ))}
@@ -342,9 +415,9 @@ const ChatArea = ({ open, handleOpen }) => {
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={handleKeyDown}
             />
-   
+
             <label className="mx-2 cursor-pointer">
-            <UploadModal roomName={roomName} ws={ws} />
+              <UploadModal roomName={roomName} ws={ws} />
             </label>
 
             <Button
