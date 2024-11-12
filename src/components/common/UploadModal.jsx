@@ -5,8 +5,7 @@ import { setPost } from "@/redux/Slices/UserSlice/UserSlice";
 import { getCookie } from "@/utils";
 import { X } from "lucide-react";
 import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import SmallSpinner from "./SmallSpinner";
 import { useNavigate } from "react-router-dom";
 
@@ -17,22 +16,39 @@ const UploadModal = ({ isOpen, onClose }) => {
     const [filePreview, setFilePreview] = useState(null);
     const [isVideo, setIsVideo] = useState(false);
     const [postContent, setPostContent] = useState("");
-    const {profileId, user} = useSelector((state) => state.users);
+    const [error, setError] = useState(null);
+    const { profileId, user } = useSelector((state) => state.users);
     const dispatch = useDispatch();
-    const [loading, setLoading] = useState(false)
-    const navigate = useNavigate()
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
             const isVideoFile = file.type.startsWith("video/");
-            setIsVideo(isVideoFile);
-            setSelectedFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setFilePreview(reader.result);
-            };
-            reader.readAsDataURL(file);
+            if (isVideoFile) {
+                const videoElement = document.createElement("video");
+                videoElement.src = URL.createObjectURL(file);
+                videoElement.onloadedmetadata = () => {
+                    if (videoElement.duration > 20) {
+                        setError("Video cannot exceed 20 seconds");
+                        return;
+                    }
+                    setIsVideo(true);
+                    setSelectedFile(file);
+                    const reader = new FileReader();
+                    reader.onloadend = () => setFilePreview(reader.result);
+                    reader.readAsDataURL(file);
+                    setError(null);
+                };
+            } else {
+                setIsVideo(false);
+                setSelectedFile(file);
+                const reader = new FileReader();
+                reader.onloadend = () => setFilePreview(reader.result);
+                reader.readAsDataURL(file);
+                setError(null);
+            }
         }
     };
 
@@ -45,14 +61,14 @@ const UploadModal = ({ isOpen, onClose }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError(null);
+
         const formData = new FormData();
         formData.append("content", postContent);
         formData.append("hide_likes", hideLikes);
         formData.append("hide_comments", turnOffComments);
         formData.append("profile", profileId);
-
         if (selectedFile) formData.append(isVideo ? "video" : "image", selectedFile);
-
         const access = getCookie("accessToken");
 
         try {
@@ -66,20 +82,19 @@ const UploadModal = ({ isOpen, onClose }) => {
                     body: formData,
                 }
             );
-
             const res = await response.json();
             if (response.status === 201) {
                 dispatch(setPost(res));
-                dispatch(showToast({ message: `${isVideo?"Reel" :"Post"} uploaded successfully`, type: "s" }));
+                dispatch(showToast({ message: `${isVideo ? "Reel" : "Post"} uploaded successfully`, type: "s" }));
                 onClose();
-                navigate( `/profile/${user.username}`)
+                navigate(`/profile/${user.username}`);
             } else {
-                dispatch(showToast({ message: `Failed to upload post: ${res.detail || "Unknown error"}`, type: "e" }));
+                setError(`Failed to upload post: ${res.detail || "Unknown error"}`);
             }
         } catch (error) {
-            dispatch(showToast({ message: "An error occurred while uploading the post", type: "e" }));
-        }finally{
-            setLoading(false)
+            setError("An error occurred while uploading the post");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -164,15 +179,23 @@ const UploadModal = ({ isOpen, onClose }) => {
                         </div>
                     </div>
 
+                    {error && (
+                        <div className="p-4 text-red-600 bg-red-100 rounded-md text-sm">
+                            {error}
+                        </div>
+                    )}
+
                     <div className="p-4 border-t border text-right">
                         <button
                             type="submit"
                             disabled={loading}
                             className="px-4 py-2 text-blue-600 rounded-md hover:bg-background transition"
                         >
-                            {loading ? <>
-                            <SmallSpinner size="sm" />
-                            </>:"Share"}
+                            {loading ? (
+                                <>
+                                    <SmallSpinner size="sm" />
+                                </>
+                            ) : "Share"}
                         </button>
                     </div>
                 </form>
