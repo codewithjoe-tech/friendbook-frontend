@@ -48,6 +48,7 @@ const HomePage = () => {
 
   return (
     <div id="scrollableDiv" className="flex flex-col gap-10 w-full py-4 h-[90vh] mt-10 overflow-y-auto">
+      <h1 className='text-xl sticky'>Posts</h1>
       <InfiniteScroll
         dataLength={count}
         next={fetchPost}
