@@ -7,17 +7,20 @@ import { useNavigate } from 'react-router-dom';
 import NProgress from "nprogress";
 import "nprogress/nprogress.css"; 
 import { showToast } from '@/redux/Slices/ToastSlice';
+import SmallSpinner from '../common/SmallSpinner';
 
 
 const Login = () => {
   const [loginCred, setLoginCred] = useState({});
  
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false)
  
 
   
  
   const loginUser = async () => {
+    setLoading(true)
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login/`, {
       method: 'POST',
       headers: {
@@ -26,6 +29,7 @@ const Login = () => {
       body: JSON.stringify(loginCred),
     });
     const data = await response.json();
+    setLoading(false)
     if (response.ok) {
         dispatch(showToast({
             message: "Logged in successfully",
@@ -47,11 +51,12 @@ const Login = () => {
                 message: "Invalid credentials",
                 type: "e",
                
-            }))
-        }
+              }))
+            }
         console.log(data)
         return data
     }
+
    
   };
 
@@ -81,7 +86,16 @@ const Login = () => {
       <form onSubmit={handleSubmit}>
         <Input required={true} name="username" type="text" onChangeCapture={handleChange} placeholder="Email or Username" className="my-5 bg-input border-2 rounded-lg focus" />
         <Input required={true} name="password" type="password" onChangeCapture={handleChange} placeholder="Password" className="my-5 bg-input rounded-lg" />
-        <Button type="submit" variant className="w-full disabled:text-muted">Sign in</Button>
+        <Button type="submit" disabled={loading} variant className="w-full disabled:text-muted">
+          
+          {
+            loading?(<SmallSpinner/>):
+          "Sign in"
+          
+          }
+
+
+        </Button>
       </form>
     </div>
   );

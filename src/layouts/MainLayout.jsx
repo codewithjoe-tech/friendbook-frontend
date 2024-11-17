@@ -87,6 +87,9 @@ const MainLayout = () => {
 
         dispatch(setWebSocket(ws.current))
 
+        ws.onerror = (e)=>{
+            console.log(e)
+        }
         return () => {
            
             dispatch(closeWebSocket())  
@@ -100,6 +103,9 @@ const MainLayout = () => {
         )
         notificationWs.current.onopen = (e)=>{
             console.log("normal Notification connected!")
+        }
+        notificationWs.current.onerror = (e)=>{
+            console.log(e)
         }
 
         notificationWs.current.onmessage = (e)=>{

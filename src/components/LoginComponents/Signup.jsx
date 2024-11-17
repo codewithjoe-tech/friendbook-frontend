@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { useDispatch } from 'react-redux';
 import { showToast } from '@/redux/Slices/ToastSlice';
 import { DotSquare } from 'lucide-react';
+import SmallSpinner from '../common/SmallSpinner';
 
 const Signup = ({ setIsLogin }) => {
     const dispatch = useDispatch();
@@ -15,6 +16,8 @@ const Signup = ({ setIsLogin }) => {
         confPassword: '',
     });
 
+  const [loading, setLoading] = useState(false)
+
     const [errors, setErrors] = useState({
         usernameInvalid: false,
         passwordLength: false,
@@ -25,6 +28,7 @@ const Signup = ({ setIsLogin }) => {
 
 
     const SignUpUser = async () => {
+        setLoading(true)
         const { username, email, full_name, password } = formData;  
     
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/signup/`, {
@@ -36,6 +40,7 @@ const Signup = ({ setIsLogin }) => {
         });
     
         const res = await response.json();
+        setLoading(false)
         if (response.ok) {
             console.log("Working");
             dispatch(showToast({
@@ -217,8 +222,13 @@ const Signup = ({ setIsLogin }) => {
                 {errors.passwordMatch && formData.confPassword !== '' && (
                     <p className="text-red-500 text-sm">Passwords do not match.</p>
                 )}
-                <Button type="submit" variant className="w-full mb-4">
-                    Sign up
+                <Button type="submit" disabled={loading} variant className="w-full mb-4">
+                {
+                    loading ? (
+                        <SmallSpinner/>
+                    ):"Sign up"
+                }
+                    
                 </Button>
             </form>
         </div>

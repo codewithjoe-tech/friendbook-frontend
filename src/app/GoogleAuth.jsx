@@ -16,6 +16,7 @@ const GoogleAuth = () => {
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true);
+    console.log(error,code,state)
 
     useEffect(() => {
         const fetchUser = async () => {

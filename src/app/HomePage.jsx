@@ -17,31 +17,34 @@ const HomePage = () => {
 
   const fetchPost = async () => {
     if (!url) return; 
-
+    console.log(url)
     try {
       const response = await fetch(url, {
+        method:"GET",
         headers: {
           Authorization: `Bearer ${access}`,
         },
       });
       const data = await response.json();
-      console.log(data)
+      console.log("Data : "+data)
       if (response.ok) {
         setPosts((prevPosts) => [...prevPosts, ...data.results]);
         setCount((prevCount) => prevCount + data.results.length);
         setHasMore(data?.next?true:false);
         setUrl(data.next); 
       } else {
-        console.error('Failed to fetch posts');
+        console.log('Failed to fetch posts');
       }
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.log('Error fetching posts:', error);
     }
   };
 
   useEffect(() => {
     fetchPost(); 
   }, []);
+
+  
 
   return (
     <div id="scrollableDiv" className="flex flex-col gap-10 w-full py-4 h-[90vh] mt-10 overflow-y-auto">
