@@ -202,98 +202,111 @@ const OtherProfile = () => {
     };
 
     return (
-        <div className="flex flex-col items-center w-full justify-center p-5">
-            <div className="flex mt-10 items-center justify-center w-[60rem]">
-                <div className="profilePicture border-[4px] mr-4 border-pink-500 rounded-full p-1">
-                    <img
-                        src={userData.userImage || '/user.webp'}
-                        className="rounded-full object-cover w-36 h-36"
-                        alt="Profile"
-                    />
+        <div className="flex flex-col  items-center w-full justify-center p-5 mt-10">
+        <div className="flex flex-col lg:flex-row items-center  lg:justify-center w-full ">
+           
+            <div className="profilePicture border-[4px] w-24 h-24 sm:w-32 sm:h-32 lg:w-36 lg:h-36   mb-4 lg:mb-0 border-pink-500 rounded-full p-1">
+                <img
+                    src={userData.userImage || '/user.webp'}
+                    className="rounded-full object-cover w-full h-full"
+                    alt="Profile"
+                />
+            </div>
+            
+            <div className="flex flex-col lg:ml-8 w-full lg:w-auto items-center lg:items-start text-center lg:text-left">
+                <div className="flex flex-col items-start justify-center">
+                    <h2 className="text-2xl sm:text-3xl font-bold mr-2">{userData?.user?.full_name || "No User Found"}</h2>
+                    <span className="text-gray-400">@{userData?.user?.username || "No user"}</span>
                 </div>
-                <div className="ml-8 ">
-                    <div className="flex flex-col justify-center">
-                        <h2 className="text-3xl font-bold mr-2">{userData?.user?.full_name || "No User Found"}</h2>
-                        <span className="text-gray-400">@{userData?.user?.username || "No user"}</span>
+                <p className="mt-2 w-full lg:w-[45rem] text-gray-300">{userData?.userBio || ""}</p>
+    
+                {/* Stats Section */}
+                <div className="flex items-center mt-4 w-full justify-center gap-3 lg:justify-start space-x-6">
+                    <div className="text-center">
+                        <span className="font-bold text-xl">{userData?.posts_count || 0}</span>
+                        <p className="text-gray-400">Posts</p>
                     </div>
-                    <p className="mt-2 w-[45rem] text-gray-300">{userData?.userBio || ""}</p>
-                    <div className="flex items-center mt-4">
-                        <div className="flex space-x-8">
-                            <div className="text-center">
-                                <span className="font-bold text-xl">{userData?.posts_count || 0}</span>
-                                <p className="text-gray-400">Posts</p>
-                            </div>
-                            <div onClick={handleFollowing} className="text-center cursor-pointer">
-                                <span className="font-bold text-xl">{userData.followingCount || 0}</span>
-                                <p className="text-gray-400">Following</p>
-                            </div>
-                            <div className="text-center cursor-pointer" onClick={handleFollowers}>
-                                <span className="font-bold text-xl">{userData.followersCount || 0}</span>
-                                <p className="text-gray-400">Followers</p>
-                            </div>
-                        </div>
-                        <div className="ml-auto space-x-4">
-                            {id !== user?.username ? (
+                    <div onClick={handleFollowing} className="text-center cursor-pointer">
+                        <span className="font-bold text-xl">{userData.followingCount || 0}</span>
+                        <p className="text-gray-400">Following</p>
+                    </div>
+                    <div className="text-center cursor-pointer" onClick={handleFollowers}>
+                        <span className="font-bold text-xl">{userData.followersCount || 0}</span>
+                        <p className="text-gray-400">Followers</p>
+                    </div>
+                </div>
+    
+                {/* Follow Button Section */}
+                <div className="mt-6 lg:mt-0 w-full flex justify-center lg:justify-end space-x-4">
+                    {id !== user?.username ? (
+                        <>
+                            {userData.user && (
                                 <>
-                                    {userData.user && (
-                                        <>
-                                            <Button
-                                                onClick={followUser}
-                                                className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg hover:bg-pink-100"
-                                            >
-                                                {userData?.is_following === 'f' ? "UnFollow" : userData?.is_following === 'r' ? "Requested" : "Follow"}
-                                            </Button>
-                                           {userData.is_following === 'f' &&  <Button
-                                                onClick={goToChat}
-                                                className="bg-pink-700 text-white px-4 py-2 rounded-lg"
-                                            >
-                                                Message
-                                            </Button>}
-                                        </>
+                                    <Button
+                                        onClick={followUser}
+                                        className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg hover:bg-pink-100"
+                                    >
+                                        {userData?.is_following === 'f'
+                                            ? "Unfollow"
+                                            : userData?.is_following === 'r'
+                                            ? "Requested"
+                                            : "Follow"}
+                                    </Button>
+                                    {userData.is_following === 'f' && (
+                                        <Button
+                                            onClick={goToChat}
+                                            className="bg-pink-700 text-white px-4 py-2 rounded-lg"
+                                        >
+                                            Message
+                                        </Button>
                                     )}
                                 </>
-                            ) : (
-                                <Link to="/settings" className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg">
-                                    Edit Profile
-                                </Link>
                             )}
-                        </div>
-
-                    </div>
+                        </>
+                    ) : (
+                        <Link
+                            to="/settings"
+                            className="bg-pink-50 font-semibold text-pink-800 px-4 py-2 rounded-lg"
+                        >
+                            Edit Profile
+                        </Link>
+                    )}
                 </div>
             </div>
-            { (userData.is_following === 'f' || id === user?.username || !userData.isPrivate) ? (
-    <>
-        <div className="flex justify-center mt-5 ">
-            <button
-                onClick={() => setSelectedTab("posts")}
-                className={`px-4 py-2 ${selectedTab === "posts" ? "text-pink-700 font-semibold" : "text-gray-500"}`}
-            >
-                Posts
-            </button>
-            <button
-                onClick={() => setSelectedTab("reels")}
-                className={`px-4 py-2 ${selectedTab === "reels" ? "text-pink-700 font-semibold" : "text-gray-500"}`}
-            >
-                Reels
-            </button>
         </div>
-        {selectedTab === "posts" ? (
-            <PostsDisplay posts={posts} handleSetPostid={handleSetPostid} loading={postLoading} />
+    
+        {(userData.is_following === 'f' || id === user?.username || !userData.isPrivate) ? (
+            <>
+                <div className="flex justify-center mt-5 space-x-4  ">
+                    <button
+                        onClick={() => setSelectedTab("posts")}
+                        className={`px-4 py-2 ${selectedTab === "posts" ? "text-pink-700 font-semibold" : "text-gray-500"}`}
+                    >
+                        Posts
+                    </button>
+                    <button
+                        onClick={() => setSelectedTab("reels")}
+                        className={`px-4 py-2 ${selectedTab === "reels" ? "text-pink-700 font-semibold" : "text-gray-500"}`}
+                    >
+                        Reels
+                    </button>
+                </div>
+                {selectedTab === "posts" ? (
+                    <PostsDisplay posts={posts} handleSetPostid={handleSetPostid} loading={postLoading} />
+                ) : (
+                    <ReelsDisplay reels={reels} handleSetReelid={handleSetReelid} loading={postLoading} />
+                )}
+                <PostViewModal open={OpenPostView} onClose={handleOpenClose} postid={PostId} postDelete={deletePost} />
+                <ReelViewModal open={OpenReelView} onClose={handleReelOpenClose} reelId={ReelId} reelDelete={deleteReel} />
+                <FollowersFollowingModal open={followPanelOpen} onClose={followPanelOnChange} url={url} />
+            </>
         ) : (
-            <ReelsDisplay reels={reels} handleSetReelid={handleSetReelid} loading={postLoading} />
+            <div className="mt-10 h-[42rem] flex items-center justify-center">
+                <p className="text-gray-500">Private Account</p>
+            </div>
         )}
-        <PostViewModal open={OpenPostView} onClose={handleOpenClose} postid={PostId} postDelete={deletePost} />
-        <ReelViewModal open={OpenReelView} onClose={handleReelOpenClose} reelId={ReelId} reelDelete={deleteReel} />
-        <FollowersFollowingModal open={followPanelOpen} onClose={followPanelOnChange} url={url} />
-    </>
-) : (
-    <div className='mt-10 h-[42rem]'>
-        <p className='text-muted-foreground/60'>Private Account</p>
     </div>
-)}
-
-        </div>
+    
     );
 };
 

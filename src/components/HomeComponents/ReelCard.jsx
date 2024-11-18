@@ -157,7 +157,7 @@ export default function ReelCard({ reel, setReels }) {
                 {isVisible ? (
                     <video
                         ref={videoRef}
-                        className="w-full rounded-lg h-[600px] object-contain aspect-[9/16]"
+                        className="w-full rounded-lg h-[550px] object-contain aspect-[9/16]"
                         preload="auto"
                         muted
                         loop

@@ -11,7 +11,7 @@ import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useDispatch } from 'react-redux'
 
-const PostDetails = ({post ,setPost,changeCurrentTab,onClose,postDelete}) => {
+const PostDetails = ({post ,setPost,changeCurrentTab,onClose,postDelete , handleDoubleTap , handleWheel , zoomLevel}) => {
 
   const access = getCookie('accessToken');
   const dispatch = useDispatch()
@@ -125,7 +125,7 @@ console.log(post)
       };
     
   return (
-    <div className="w-1/2 flex flex-col justify-between">
+    <div className="w-full sm:w-1/2 flex flex-col justify-between">
     <div >
       <div className="flex items-center mb-4">
         <img
@@ -140,9 +140,23 @@ console.log(post)
       </div>
       <p className="mb-4">{post.content || 'No content available'}</p>
     </div>
+    <div 
+            className=" w-full  sm:w-1/2 sm:flex h-full  flex items-center" 
+            onDoubleClick={handleDoubleTap} 
+            onWheel={handleWheel} 
+          >
+            <img
+              src={post.image || 'https://via.placeholder.com/400'}
+              alt="Post"
+              className="w-full h-auto object-contain rounded-md transition-transform duration-300  z-50"
+              style={{ transform: `scale(${zoomLevel})` }}
+            />
+          </div>
 
-    <div className="flex gap-3 items-center mt-4">
-      <div className="flex items-center space-x-4">
+    <div className="flex gap-3 items-center  sm:mt-4" >
+
+   
+      <div className="flex items-center gap-3">
         <Button variant 
           className={`text-3xl ${post.user_liked ? 'text-red-500' : 'text-gray-400'} m-0 p-0 hover:text-red-500 transition-colors focus:ring-0`}
           onClick={toggleLike}

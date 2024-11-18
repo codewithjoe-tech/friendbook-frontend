@@ -3,6 +3,7 @@ import Authenticate from '@/authenticate'
 import CallModal from '@/components/Call/CallModal'
 import CallRequestToast from '@/components/Call/CallRequestToast'
 import StartCalling from '@/components/Call/StartCalling'
+import NavigationMenu from '@/components/common/NavigationMenu'
 import Sidebar from '@/components/common/Sidebar'
 import Toast from '@/components/common/Toast'
 import UploadModal from '@/components/common/UploadModal'
@@ -134,12 +135,13 @@ const MainLayout = () => {
                 {call.incomingCall && <CallRequestToast />}
                 {call.isCalling && <StartCalling/>}
                 {call.isInCall && <CallModal/>}
-                <div className="flex gap-16 ">
-                    <div className="basis-14">
+                <div className="flex ">
+                   
                         <Sidebar />
-                    </div>
+                  
                     {postModalOpen && <UploadModal isOpen={postModalOpen} onClose={() => { dispatch(setModalOpen()) }} />}
                     <Outlet />
+                <NavigationMenu />
                 </div>
                 <Toaster />
             </Authenticate>

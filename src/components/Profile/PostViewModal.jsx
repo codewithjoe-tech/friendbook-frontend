@@ -85,14 +85,14 @@ const PostViewModal = ({ postid, open, onClose,selectedTab, commentId, replyStat
         <DialogClose />
       </DialogHeader>
 
-      <DialogContent className="flex flex-col space-x-6 max-w-3xl mt-4 h-[600px] select-none ">
+      <DialogContent className="flex flex-col sm:space-x-6 max-w-3xl mt-4 h-[600px] select-none ">
         <div className='flex gap-3 items-center '>
           <Button onClick={changeCurrentTab}><ArrowLeft/></Button>
           <DialogTitle className="text-start font-bold">Post</DialogTitle>
         </div>
-        <div className="flex space-x-6 max-w-3xl h-[500px]">
+        <div className="flex sm:space-x-6 max-w-3xl h-[500px]">
           <div 
-            className="w-1/2 flex h-full" 
+            className="hidden sm:w-1/2 sm:flex h-full " 
             onDoubleClick={handleDoubleTap} 
             onWheel={handleWheel} 
           >
@@ -107,7 +107,7 @@ const PostViewModal = ({ postid, open, onClose,selectedTab, commentId, replyStat
 
           {
             tabs.current[currentTab] === 'd' ?(
-              <PostDetails post={post} setPost={setPost} changeCurrentTab={()=>{setCurrentTab((prev) => (prev === 0? 1 : 0));}} onClose={onClose} postDelete={postDelete}/>
+              <PostDetails post={post} setPost={setPost} changeCurrentTab={()=>{setCurrentTab((prev) => (prev === 0? 1 : 0));}} onClose={onClose} postDelete={postDelete} handleDoubleTap={handleDoubleTap} handleWheel={handleWheel} zoomLevel={zoomLevel} />
             ):(
               <Comments postId={postid} onClose = {onClose} replyStatus={replyStatus} selectedComment={commentId} /> 
 

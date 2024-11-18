@@ -363,8 +363,8 @@ useEffect(() => {
   };
 
   return (
-    <div className="w-1/2 flex flex-col h-full">
-      <ScrollArea className="flex-1 overflow-y-auto p-4">
+    <div className="w-full sm:w-1/2 flex flex-col h-full">
+      <ScrollArea className="flex-1 overflow-y-auto mt-6 ">
         {comments.length === 0 ? (
           <p className="text-center text-gray-500">No comments available.</p>
         ) : (
