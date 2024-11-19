@@ -1,26 +1,49 @@
 import ChatArea from "@/components/Messages/ChatArea";
 import ChatList from "@/components/Messages/ChatList";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
 const ChatApp = () => {
   const [chatListOpen, setChatListOpen] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const { roomName } = useParams();
+
+  useEffect(() => {
+    if (roomName) {
+      setChatListOpen(false);
+    }
+  }, [roomName]);
 
   const handleChatListOpen = () => {
-    setChatListOpen(!chatListOpen);
+    if (chatListOpen) {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setChatListOpen(false);
+        setIsAnimating(false);
+      }, 300);
+    } else {
+      setChatListOpen(true);
+      setIsAnimating(true);
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 300);
+    }
   };
 
   return (
-    <div className="relative md:mt-24 w-full md:w-[70rem] mx-auto flex md:flex-row flex-col items-center">
-      
-      <div
-        className={`md:${!chatListOpen && 'hidden'} absolute md:relative bg-background z-20 w-full md:w-[30rem] transition-all duration-300 ${
-          chatListOpen
-            ? "top-0 left-0 h-full md:translate-x-0 translate-x-0"
-            : "-translate-x-full md:translate-x-0"
-        }`}
-      >
-        <ChatList handleOpen={handleChatListOpen} />
-      </div>
+    <div className="relative md:mt-24 w-full md:w-[70rem] mx-auto flex md:flex-row flex-col items-stretch">
+      {/* ChatList */}
+      {(chatListOpen || isAnimating) && (
+        <div
+          className={`md:relative bg-background z-20 w-full md:w-[30rem] h-full transition-all duration-300 ${
+            chatListOpen
+              ? "translate-x-0"
+              : "translate-x-[-100%] md:translate-x-0"
+          }`}
+        >
+          <ChatList handleOpen={handleChatListOpen} />
+        </div>
+      )}
 
       {/* ChatArea */}
       <div
