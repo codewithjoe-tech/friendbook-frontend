@@ -7,6 +7,14 @@ import {
     Bell,
     User,
   } from "lucide-react";
+  import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+  } from "@/components/ui/dropdown-menu"
   
   import { NavLink } from "react-router-dom";
   import React, { useState } from "react";
@@ -22,13 +30,18 @@ import { NotiOpen } from "@/redux/Slices/NotificationSlice";
    
     const { user } = useSelector((state) => state.users);
     const dispatch = useDispatch();
+    const handleLogout = () => {
+      dispatch(logout());
+      navigate('/login');
+    };
+  
   
     const toggleSearch = () => setOpenSearch(!openSearch);
     const toggleNotifications = () => dispatch(NotiOpen())
   
     return (
       <>
-        <div className="md:hidden fixed w-full flex justify-between h-14 bg-background bottom-0">
+        <div className="lg:hidden sticky w-full flex justify-between h-14 bg-background -bottom-1">
           <ul className="flex justify-between items-center w-full h-full">
             <li>
               <NavLink
@@ -85,14 +98,39 @@ import { NotiOpen } from "@/redux/Slices/NotificationSlice";
               </button>
             </li>
             <li>
-              <NavLink
+              {/* <NavLink
                 to={`/profile/${user?.username}`}
                 className={({ isActive }) =>
                   isActive ? "text-foreground bg-white" : "text-foreground"
                 }
               >
-                <User className="transition" />
+               
+              </NavLink> */}
+              <DropdownMenu>
+  <DropdownMenuTrigger>
+  <User className="transition" />
+  </DropdownMenuTrigger>
+  <DropdownMenuContent className="bg-background text-foreground">
+   
+   
+    <DropdownMenuItem asChild>
+    <NavLink
+                to={`/profile/${user?.username}`}
+                className={({ isActive }) =>
+                  isActive ? "text-foreground " : "text-foreground"
+                }
+              >
+               Profile
               </NavLink>
+    </DropdownMenuItem>
+   
+   
+    <DropdownMenuItem onClick={handleLogout} >
+Logout
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
+
             </li>
           </ul>
         </div>

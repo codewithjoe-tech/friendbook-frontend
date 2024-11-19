@@ -131,6 +131,7 @@ const MainLayout = () => {
         <>
             <RouteChangeHandler />
             <Authenticate>
+              
                 <Toast />
                 {call.incomingCall && <CallRequestToast />}
                 {call.isCalling && <StartCalling/>}
@@ -141,8 +142,8 @@ const MainLayout = () => {
                   
                     {postModalOpen && <UploadModal isOpen={postModalOpen} onClose={() => { dispatch(setModalOpen()) }} />}
                     <Outlet />
-                <NavigationMenu />
                 </div>
+                <NavigationMenu />
                 <Toaster />
             </Authenticate>
         </>

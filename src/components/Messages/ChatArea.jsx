@@ -255,198 +255,178 @@ const ChatArea = ({ open, handleOpen }) => {
   }
 
   return (
-    <>
-      {isChatRoom ? (
-        <div className="w-full flex flex-col bg-background h-[45rem] border">
-          <div className="flex items-center justify-between p-4 bg-muted ">
-            <div className="flex items-center space-x-4">
-              {!open ? (
-                <Menu className="cursor-pointer" onClick={handleOpen} />
-              ) : (
-                <X className="cursor-pointer" onClick={handleOpen} />
-              )}
-              <Avatar>
-                <AvatarImage
-                  src={chatRoom?.other_user?.profile_picture}
-                  className="object-cover "
-                />
-                <AvatarFallback className="bg-muted-foreground/40">
-                  {get_letter(chatRoom?.other_user?.full_name || "")}
-                </AvatarFallback>
-              </Avatar>
-
-              <div>
-                <h4 className="font-semibold text-muted-foreground">
-                  {chatRoom?.other_user?.full_name}
-                </h4>
-                <p className="text-sm text-muted-foreground/60">
-                  @{chatRoom?.other_user?.username}
-                </p>
-              </div>
-            </div>
-            <div className="flex space-x-4">
-
-              <Button onClick={() => { VideoCall(chatRoom?.other_user?.username) }} className="text-muted-foreground bg-background/30">
-                <Video />
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex-1 p-6 space-y-4 overflow-y-auto">
-            {messages &&
-              messages.map((message, index) => (
-                <div key={index}>
-                  {message.sender !== user.username ? (
-                    <div className="flex space-x-4 items-center">
-                      <Link to={`/profile/${message.sender}`}>
-                        <Avatar>
-                          <AvatarImage className="object-cover" src={message?.profile_picture} />
-                          <AvatarFallback>CN</AvatarFallback>
-                        </Avatar>
-                      </Link>
-
-                      <div>
-                        <div
-                          className={`p-4 rounded-lg shadow mt-4 ${message.seen ? "bg-muted/60" : "bg-muted/30"
-                            }`}
-                        >
-                          {message.content_type === "textmessage" && (
-                            <p className="text-muted-foreground">
-                              {message?.content_object?.text}
-                            </p>
-                          )}
-                          {message.content_type === "imagemessage" && (
-                            <img
-                              src={message?.content_object?.image}
-                              alt="Image"
-                              className="max-w-xs"
-                            />
-                          )}
-                          {message.content_type === "videomessage" && (
-                            <video
-                              controls
-                              src={message?.content_object?.video}
-                              className="max-w-xs"
-                            />
-                          )}
-                        </div>
-                        <span className="text-xs text-muted-foreground/60">
-                          {formatTimestamp(message?.timestamp)}
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div
-
-                        className="flex justify-end space-x-4 items-center">
-                        <div className="flex flex-col space-y-2 items-end">
-                          <div  onContextMenu={(e) => message.sender === user.username && handleContextMenu(e, message.id)}
-                            className={`p-4 rounded-lg shadow relative ${message.seen ? "bg-blue-500/60" : "bg-blue-700"
-                              }`}
-                          >
-                            {message.content_type === "textmessage" && (
-                              <p className="text-muted-foreground">
-                                {message?.content_object?.text}
-                              </p>
-                            )}
-                            {message.content_type === "imagemessage" && (
-                              <img
-                                src={message?.content_object?.image}
-                                alt="Image"
-                                className="max-w-xs"
-                              />
-                            )}
-                            {message.content_type === "videomessage" && (
-                              <video
-                                controls
-                                src={message?.content_object?.video}
-                                className="max-w-xs"
-                              />
-                            )}
-
-
-                            <div className=" ">
-                              {message.seen && (
-                                <>
-                                  <Check className="absolute bottom-0 right-2 text-white" size={16} />
-                                  <Check className="absolute bottom-0 right-3 text-white" size={16} />
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          <div>
-                            <span className="text-xs text-muted-foreground/60">
-                              {formatTimestamp(message?.timestamp)}
-                            </span>
-                          </div>
-                        </div>
-                        <Avatar>
-                          <AvatarImage className="object-cover" src={message?.profile_picture} />
-                          <AvatarFallback>CN</AvatarFallback>
-                        </Avatar>
-                        {contextMenu.visible && (
-                          <div
-                            ref={contextMenuRef}
-                            style={{ top: contextMenu.y, left: contextMenu.x }}
-                            className="absolute bg-background hover:bg-muted shadow-md rounded p-2 z-10"
-                          >
-                            <button className="text-red-500" onClick={handleUnsend}>Unsend</button>
-                          </div>
-                        )}
-
-
-                      </div>
-
-
-                    </>
-
-                  )}
-                </div>
-              ))}
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div className="flex p-4 bg-muted items-center">
-            <Input
-              className="w-full p-2 bg-background/30 text-muted-foreground rounded"
-              placeholder="Write your message"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-
-            <label className="mx-2 cursor-pointer">
-              <UploadModal roomName={roomName} ws={ws} />
-            </label>
-
-            <Button
-              className="ml-2 bg-muted/30 text-muted-foreground"
-              onClick={sendMessage}
-            >
-              <SendHorizonal />
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="w-full flex flex-col bg-background h-[45rem] border ">
+<>
+  {isChatRoom ? (
+    <div className="w-full flex flex-col bg-background h-[93vh] md:h-[45rem] border">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 bg-muted">
+        <div className="flex items-center space-x-4">
           {!open ? (
-            <Menu className="cursor-pointer mt-6 mx-4" onClick={handleOpen} />
+            <Menu className="cursor-pointer" onClick={handleOpen} />
           ) : (
-            <X className="cursor-pointer mt-6 mx-4" onClick={handleOpen} />
+            <X className="cursor-pointer" onClick={handleOpen} />
           )}
-          <div className="flex items-center justify-center h-full p-4  ">
-            <div className="flex items-center space-x-4">
-              <h2 className="font-semibold text-muted-foreground/50">
-                Chat with your friends
-              </h2>
-            </div>
+          <Avatar>
+            <AvatarImage
+              src={chatRoom?.other_user?.profile_picture}
+              className="object-cover"
+            />
+            <AvatarFallback className="bg-muted-foreground/40">
+              {get_letter(chatRoom?.other_user?.full_name || "")}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h4 className="font-semibold text-muted-foreground text-sm md:text-base">
+              {chatRoom?.other_user?.full_name}
+            </h4>
+            <p className="text-xs md:text-sm text-muted-foreground/60">
+              @{chatRoom?.other_user?.username}
+            </p>
           </div>
         </div>
+        <div className="flex space-x-2 md:space-x-4">
+          <Button
+            onClick={() => VideoCall(chatRoom?.other_user?.username)}
+            className="text-muted-foreground bg-background/30 p-2 md:p-3"
+          >
+            <Video />
+          </Button>
+        </div>
+      </div>
+
+      {/* Chat Messages */}
+      <div className="flex-1 p-4 md:p-6 space-y-4 overflow-y-auto">
+        {messages.map((message, index) => (
+          <div key={index}>
+            {message.sender !== user.username ? (
+              <div className="flex space-x-4 items-center">
+                <Link to={`/profile/${message.sender}`}>
+                  <Avatar>
+                    <AvatarImage className="object-cover" src={message?.profile_picture} />
+                    <AvatarFallback>CN</AvatarFallback>
+                  </Avatar>
+                </Link>
+                <div>
+                  <div
+                    className={`p-4 rounded-lg shadow mt-4 ${
+                      message.seen ? "bg-muted/60" : "bg-muted/30"
+                    }`}
+                  >
+                    {message.content_type === "textmessage" && (
+                      <p className="text-muted-foreground text-sm md:text-base">
+                        {message?.content_object?.text}
+                      </p>
+                    )}
+                    {message.content_type === "imagemessage" && (
+                      <img
+                        src={message?.content_object?.image}
+                        alt="Image"
+                        className="max-w-xs md:max-w-sm"
+                      />
+                    )}
+                    {message.content_type === "videomessage" && (
+                      <video
+                        controls
+                        src={message?.content_object?.video}
+                        className="max-w-xs md:max-w-sm"
+                      />
+                    )}
+                  </div>
+                  <span className="text-xs md:text-sm text-muted-foreground/60">
+                    {formatTimestamp(message?.timestamp)}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-end space-x-4 items-center">
+                <div className="flex flex-col space-y-2 items-end">
+                  <div
+                    onContextMenu={(e) =>
+                      message.sender === user.username && handleContextMenu(e, message.id)
+                    }
+                    className={`p-4 rounded-lg shadow relative ${
+                      message.seen ? "bg-blue-500/60" : "bg-blue-700"
+                    }`}
+                  >
+                    {message.content_type === "textmessage" && (
+                      <p className="text-muted-foreground text-sm md:text-base">
+                        {message?.content_object?.text}
+                      </p>
+                    )}
+                    {message.content_type === "imagemessage" && (
+                      <img
+                        src={message?.content_object?.image}
+                        alt="Image"
+                        className="max-w-xs md:max-w-sm"
+                      />
+                    )}
+                    {message.content_type === "videomessage" && (
+                      <video
+                        controls
+                        src={message?.content_object?.video}
+                        className="max-w-xs md:max-w-sm"
+                      />
+                    )}
+                    <div className="absolute flex md:bottom-0 right-0 md:right-2">
+                      {message.seen && (
+                        <>
+                          <Check className="text-white" size={16} />
+                          <Check className="text-white -ml-3  " size={16} />
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-xs md:text-sm text-muted-foreground/60">
+                    {formatTimestamp(message?.timestamp)}
+                  </span>
+                </div>
+                <Avatar>
+                  <AvatarImage className="object-cover" src={message?.profile_picture} />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+              </div>
+            )}
+          </div>
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Message Input */}
+      <div className="flex p-4 bg-muted items-center">
+        <Input
+          className="w-full p-2 bg-background/30 text-muted-foreground rounded text-sm md:text-base"
+          placeholder="Write your message"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <label className="mx-2 cursor-pointer">
+          <UploadModal roomName={roomName} ws={ws} />
+        </label>
+        <Button
+          className="ml-2 bg-muted/30 text-muted-foreground p-2 md:p-3"
+          onClick={sendMessage}
+        >
+          <SendHorizonal />
+        </Button>
+      </div>
+    </div>
+  ) : (
+    <div className="w-full flex flex-col bg-background h-[92vh] md:h-[45rem] border">
+      {!open ? (
+        <Menu className="cursor-pointer mt-6 mx-4" onClick={handleOpen} />
+      ) : (
+        <X className="cursor-pointer mt-6 mx-4" onClick={handleOpen} />
       )}
+      <div className="flex items-center justify-center h-full p-4">
+        <h2 className="font-semibold text-muted-foreground/50 text-sm md:text-base">
+          Chat with your friends
+        </h2>
+      </div>
+    </div>
+  )}
+</>
 
-
-    </>
   );
 };
 

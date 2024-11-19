@@ -134,88 +134,92 @@ const Settings = () => {
     };
 
     return (
-        <div className="w-[40rem] mx-auto flex flex-col mt-10">
-            <h1 className="text-white text-4xl my-5">Settings</h1>
-            <div className="flex flex-col items-center">
-                <div className="mt-6 rounded-lg p-6 w-[40rem] bg-muted/40">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-4">
-                            <div className="relative">
-                                <img
-                                    src={userImage}
-                                    alt="Profile"
-                                    className="w-16 h-16 rounded-full border-[4px] object-cover border-pink-500"
-                                />
-                                <div className="absolute p-1 bottom-0 -right-2 flex items-center justify-center rounded-full bg-gray-700">
-                                    <label className="rounded-full cursor-pointer">
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className="hidden"
-                                            onChange={handleProfileImageChange}
-                                        />
-                                        <PlusCircleIcon />
-                                    </label>
-                                </div>
-                            </div>
-                            <div>
-                                <h2 className="text-white text-2xl font-bold">{user?.full_name}</h2>
-                                <p className="text-gray-400">@{user?.username}</p>
+        <div className="w-full max-w-[40rem] h-screen mx-auto flex flex-col mt-10 px-4 md:px-8">
+        <h1 className="text-white text-3xl md:text-4xl my-5">Settings</h1>
+        <div className="flex flex-col items-center">
+            <div className="mt-6 rounded-lg p-6 w-full bg-muted/40">
+                <div className="flex justify-between md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
+                    <div className="flex items-center space-x-4">
+                        <div className="relative">
+                            <img
+                                src={userImage}
+                                alt="Profile"
+                                className="w-16 h-16 rounded-full border-[4px] object-cover border-pink-500"
+                            />
+                            <div className="absolute p-1 bottom-0 -right-2 flex items-center justify-center rounded-full bg-gray-700">
+                                <label className="rounded-full cursor-pointer">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleProfileImageChange}
+                                    />
+                                    <PlusCircleIcon />
+                                </label>
                             </div>
                         </div>
-                        <div className="flex flex-col items-center gap-1 cursor-pointer">
-                            {
-                                !privateLoading ?
-                                <Switch id='private'  checked={privateAcc} onCheckedChange={onPrivateChange} />
-                                :(<>
-                                <SmallSpinner size='sm' />
-                                </>)
-                            }
-                            <Label htmlFor='private' className="cursor-pointer" >{privateAcc ? "Private" : "Public"}</Label>
+                        <div>
+                            <h2 className="text-white text-xl md:text-2xl font-bold">{user?.full_name}</h2>
+                            <p className="text-gray-400">@{user?.username}</p>
                         </div>
                     </div>
+                    <div className="flex  items-center gap-1 cursor-pointer">
+                        {!privateLoading ? (
+                            <Switch id="private" checked={privateAcc} onCheckedChange={onPrivateChange} />
+                        ) : (
+                            <SmallSpinner size="sm" />
+                        )}
+                        <Label htmlFor="private" className="cursor-pointer">
+                            {privateAcc ? "Private" : "Public"}
+                        </Label>
+                    </div>
                 </div>
-
-                <div className="mt-8 rounded-lg p-6 w-[40rem] bg-muted/40">
-                    <div className="p-6 rounded-lg space-y-4">
-                        <div>
-                            <label className="block text-gray-400 mb-1">Bio</label>
-                            <Textarea
-                                placeholder="Enter your Bio"
-                                value={form.bio}
-                                onChange={handleChange}
-                                className="w-full bg-muted"
-                                name="bio"
-                            />
-                            <p className="text-gray-400 text-sm text-right">{form.bio.length}/{maxBioLength}</p>
-                        </div>
-
-                        <div>
-                            <label className="block text-gray-400 mb-1">Gender</label>
-                            <Select onValueChange={handleSelectChange} value={form.gender} className="w-full">
-                                <SelectTrigger className="w-full bg-muted">
-                                    <SelectValue placeholder="Gender" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Male">Male</SelectItem>
-                                    <SelectItem value="Female">Female</SelectItem>
-                                    <SelectItem value="Other">Other</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="flex justify-between mt-4">
-                            <Button disabled={settingsLoading} className="bg-pink-500 select-none disabled:bg-pink-800 hover:bg-pink-600 text-white px-4 py-2" onClick={handleSubmit}>
-                                
-                                {
-                                    settingsLoading ? <SmallSpinner size='xs' color='white' /> : "Save"
-                                }
-                            </Button>
-                        </div>
+            </div>
+    
+            <div className="mt-8 rounded-lg p-6 w-full bg-muted/40">
+                <div className="p-6 rounded-lg space-y-4">
+                    <div>
+                        <label className="block text-gray-400 mb-1">Bio</label>
+                        <Textarea
+                            placeholder="Enter your Bio"
+                            value={form.bio}
+                            onChange={handleChange}
+                            className="w-full bg-muted"
+                            name="bio"
+                        />
+                        <p className="text-gray-400 text-sm text-right">
+                            {form.bio.length}/{maxBioLength}
+                        </p>
+                    </div>
+    
+                    <div>
+                        <label className="block text-gray-400 mb-1">Gender</label>
+                        <Select onValueChange={handleSelectChange} value={form.gender} className="w-full">
+                            <SelectTrigger className="w-full bg-muted">
+                                <SelectValue placeholder="Gender" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Male">Male</SelectItem>
+                                <SelectItem value="Female">Female</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+    
+                    <div className="flex justify-between mt-4">
+                        <Button
+                            disabled={settingsLoading}
+                            className="bg-pink-500 select-none disabled:bg-pink-800 hover:bg-pink-600 text-white px-4 py-2"
+                            onClick={handleSubmit}
+                        >
+                            {settingsLoading ? <SmallSpinner size="xs" color="white" /> : "Save"}
+                        </Button>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+    
     );
 };
 

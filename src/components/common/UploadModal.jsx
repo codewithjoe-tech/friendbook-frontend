@@ -100,9 +100,9 @@ const UploadModal = ({ isOpen, onClose }) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-3xl bg-muted/80 backdrop-blur-lg p-0">
+            <DialogContent className="max-w-3xl bg-muted/80 backdrop-blur-lg p-0 max-h-svh overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="flex justify-between items-center p-3 bg-muted/80 sticky top-0 backdrop-filter">
+                    <DialogTitle className="flex  justify-between items-center p-3 bg-muted/80 sticky top-0 backdrop-filter ">
                         Permission Photo
                         <button onClick={onClose} className="text-lg">
                             <X />
@@ -111,8 +111,8 @@ const UploadModal = ({ isOpen, onClose }) => {
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="flex">
-                        <div className="w-1/2 p-4">
+                    <div className="flex flex-col sm:flex-row ">
+                        <div className="w-full sm:w-1/2 p-4">
                             {filePreview ? (
                                 <div className="relative">
                                     {isVideo ? (
@@ -145,7 +145,7 @@ const UploadModal = ({ isOpen, onClose }) => {
                             )}
                         </div>
 
-                        <div className="w-1/2 p-4 space-y-4">
+                        <div className="sm:w-1/2 p-4 space-y-4">
                             <textarea
                                 value={postContent}
                                 onChange={(e) => setPostContent(e.target.value)}

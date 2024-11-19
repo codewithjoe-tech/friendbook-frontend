@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { getCookie } from '@/utils';
 import PostCardSkelton from '@/components/HomeComponents/PostCardSkelton';
+import { Link } from 'react-router-dom';
 
 const HomePage = () => {
   const {} = useSelector((state) => state.users);
@@ -89,7 +90,10 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div id="scrollableDiv" className="flex flex-col gap-10 w-full py-4 h-[90vh] mt-10 overflow-y-auto">
+    <div id="scrollableDiv" className="flex flex-col gap-10 w-full py-2 h-[90vh] mt-10 md:mt-10 overflow-y-auto">
+       <div className="lg:hidden logo w-full pl-3 bg-background py-4 mt-3 shadow-lg -top-2 items-center fixed z-[9999]">
+            <Link to="/" className="text-xl font-semibold">FriendBook</Link>
+          </div>
       <InfiniteScroll
         dataLength={count}
         next={fetchPost}
@@ -106,7 +110,7 @@ const HomePage = () => {
         {/* {posts.map((post) => (
           <PostCard post={post} key={post.id} setPosts={setPosts} />
         ))} */}
-        {posts2.map((post) => (
+        {posts.map((post) => (
           <PostCard post={post} key={post.id} setPosts={setPosts} />
         ))}
       </InfiniteScroll>

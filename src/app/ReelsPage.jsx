@@ -113,7 +113,7 @@ const ReelsPage = () => {
         }
       >
         <div className="flex flex-col gap-4 px-4 ">
-          {dummyReels.map((reel) => (
+          {reels.map((reel) => (
             <ReelCard reel={reel} key={reel.id} setReels={setReels} />
           ))}
         </div>
