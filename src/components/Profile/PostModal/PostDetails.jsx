@@ -141,14 +141,14 @@ console.log(post)
       <p className="mb-4">{post.content || 'No content available'}</p>
     </div>
     <div 
-            className=" w-full  sm:w-1/2 sm:flex h-full  flex items-center" 
+            className="md:hidden  w-full  sm:w-1/2 sm:flex h-1/2  flex items-center" 
             onDoubleClick={handleDoubleTap} 
             onWheel={handleWheel} 
           >
             <img
               src={post.image || 'https://via.placeholder.com/400'}
               alt="Post"
-              className="w-full h-auto object-contain rounded-md transition-transform duration-300  z-50"
+              className="w-full  object-contain rounded-md h-full transition-transform duration-300  z-50"
               style={{ transform: `scale(${zoomLevel})` }}
             />
           </div>
