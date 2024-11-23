@@ -89,7 +89,7 @@ const HomePage = () => {
 
   return (
     <div id="scrollableDiv" className="flex flex-col gap-10 w-full py-2 h-[90vh] mt-10 md:mt-10 overflow-y-auto scrollbar-none">
-       <div className="lg:hidden logo w-full pl-3 bg-background py-4 mt-3 shadow-lg -top-2 items-center fixed z-[9999]">
+       <div className="lg:hidden logo w-full pl-3 bg-background py-4 mt-3 shadow-lg -top-2 items-center fixed z-[10]">
             <Link to="/" className="text-xl font-semibold">FriendBook</Link>
           </div>
       <InfiniteScroll
