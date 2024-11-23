@@ -40,6 +40,7 @@ const MainLayout = () => {
     }
 
     useEffect(() => {
+        if(!user?.username) return 
         ws.current = new WebSocket(
             `${import.meta.env.VITE_WS_URL}/ws/call/notification/${user?.username}/?token=${access}`
         )
@@ -100,6 +101,7 @@ const MainLayout = () => {
 
 
     useEffect(() => {
+        if(!user?.username) return 
         notificationWs.current = new WebSocket(
             `${import.meta.env.VITE_WS_URL}/ws/notification/${user?.username}/?token=${access}`
         )
