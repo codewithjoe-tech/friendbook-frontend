@@ -95,7 +95,7 @@ const ReelsPage = () => {
   return (
     <div
       id="scrollableDiv"
-      className="flex flex-col w-full py-4 h-[80vh] overflow-y-scroll mt-20"
+      className="flex flex-col w-full py-4 h-[80vh] overflow-y-scroll scrollbar-none mt-20"
     >
       <InfiniteScroll
         dataLength={count}
