@@ -23,21 +23,21 @@ const ChatArea = ({ open, handleOpen }) => {
   const seenWs = useRef(null)
   const callWs = useSelector((state) => state.call.ws);
   const dispatch = useDispatch()
-  const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, messageId: null });
-  const contextMenuRef = useRef(null);
+  const [deleteMessage, setDeleteMessage] = useState(null)
+ 
 
 
   const handleContextMenu = (e, messageId) => {
     e.preventDefault();
-    setContextMenu({ visible: true, x: e.clientX, y: e.clientY, messageId });
+    setDeleteMessage(messageId)
   };
 
   const closeContextMenu = () => {
-    setContextMenu({ visible: false, x: 0, y: 0, messageId: null });
+    setDeleteMessage(null)
   };
 
   const handleUnsend = () => {
-    const messageId = contextMenu.messageId;
+    const messageId = deleteMessage;
     if (messageId && ws.current) {
       ws.current.send(JSON.stringify({ message_type: "delete", content: messageId }));
       setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== messageId));
@@ -48,7 +48,7 @@ const ChatArea = ({ open, handleOpen }) => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target)) {
+      if (deleteMessage) {
         closeContextMenu();
       }
     };
@@ -291,7 +291,7 @@ const ChatArea = ({ open, handleOpen }) => {
             {messages &&
               messages.map((message, index) => (
                 <div key={index}>
-                  {message.sender !== user.username ? (
+                  {message.sender !== user?.username ? (
                     <div className="flex space-x-4 items-center">
                       <Link to={`/profile/${message.sender}`}>
                         <Avatar>
@@ -336,7 +336,7 @@ const ChatArea = ({ open, handleOpen }) => {
 
                         className="flex justify-end space-x-4 items-center">
                         <div className="flex flex-col space-y-2 items-end">
-                          <div  onContextMenu={(e) => message.sender === user.username && handleContextMenu(e, message.id)}
+                          <div  onContextMenu={(e) => message.sender === user?.username && handleContextMenu(e, message.id)}
                             className={`p-4 rounded-lg shadow relative ${message.seen ? "bg-blue-500/60" : "bg-blue-700"
                               }`}
                           >
@@ -380,11 +380,11 @@ const ChatArea = ({ open, handleOpen }) => {
                           <AvatarImage className="object-cover" src={message?.profile_picture} />
                           <AvatarFallback>CN</AvatarFallback>
                         </Avatar>
-                        {contextMenu.visible && (
+                        {deleteMessage && deleteMessage==message.id && (
                           <div
-                            ref={contextMenuRef}
-                            style={{ top: contextMenu.y, left: contextMenu.x }}
-                            className="absolute bg-background hover:bg-muted shadow-md rounded p-2 z-10"
+                           
+                           
+                            className=" bg-background hover:bg-muted shadow-md rounded p-2 z-10"
                           >
                             <button className="text-red-500" onClick={handleUnsend}>Unsend</button>
                           </div>
