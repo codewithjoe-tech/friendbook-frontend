@@ -69,7 +69,6 @@ const UploadModal = ({ roomName, ws }) => {
 
       const data = await response.json();
       if (response.ok) {
-        console.log("Upload successful:", data);
         sendWsMessage(fileType === "image" ? "imagemessage" : "videomessage", data.id);
       } else {
         setError(`Upload failed: ${data.detail || "Unknown error"}`);

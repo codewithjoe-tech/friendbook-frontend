@@ -22,7 +22,6 @@ const PostDetails = ({post ,setPost,changeCurrentTab,onClose,postDelete , handle
 
   const {user} = useSelector((state)=>state.users)
 
-console.log(post)
 
   const submitReport = async()=>{
 
@@ -40,13 +39,11 @@ console.log(post)
       }),
     })
     const res = await response.json()
-    console.log(res)
     if(response.status==201) {
       dispatch(showToast({
         message: 'Report submitted successfully',
         type:'s',
       }))
-      console.log("status is workintg")
       
     }else{
       dispatch(showToast({
@@ -91,8 +88,6 @@ console.log(post)
   }
 
   const handleReportValueChange = (e) => {
-    // console.log(reportId)
-    console.log(reportReason)
     setReportReason(e.target.value)
   }
 

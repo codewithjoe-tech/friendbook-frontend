@@ -51,7 +51,6 @@ const OtherProfile = () => {
     };
 
     const handleSetReelid = (id) => {
-        console.log(id)
         handleReelOpenClose();
         setReelId(id);
     };
@@ -66,7 +65,6 @@ const OtherProfile = () => {
 
     const { id } = useParams();
     const { profileId, user } = useSelector((state) => state.users);
-    console.log(id === user?.username)
 
     const goToChat = async () => {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/chat-room/${id}`, {
@@ -79,7 +77,6 @@ const OtherProfile = () => {
     const followUser = async () => {
         try {
             const data = await dispatch(followUserThunk(id)).unwrap();
-            console.log(data)
             setUserData({
                 ...userData,
                 is_following: data.follow_status,
@@ -98,7 +95,6 @@ const OtherProfile = () => {
                     headers: { Authorization: `Bearer ${access}` }
                 });
                 const data = await response.json();
-                console.log(data)
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 setUserData({
                     user: data.user,
@@ -126,7 +122,6 @@ const OtherProfile = () => {
         if (userData.is_following !== 'f' && id !== user?.username && userData.isPrivate) return
         setPostLoading(true);
 
-        console.log("Working")
         if (!id || !access) {
             console.error("Missing required parameters");
             return;

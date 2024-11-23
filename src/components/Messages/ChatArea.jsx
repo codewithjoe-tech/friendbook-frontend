@@ -75,7 +75,6 @@ const ChatArea = ({ open, handleOpen }) => {
       }
     );
     const data = await response.json();
-    console.log(data)
     if (response.ok) {
       setMessages(data);
       console.log(data)
@@ -94,7 +93,6 @@ const ChatArea = ({ open, handleOpen }) => {
     const data = await response.json();
     if (response.ok) {
       setChatRoom(data);
-      console.log(data)
     }
   };
 
@@ -115,9 +113,7 @@ const ChatArea = ({ open, handleOpen }) => {
 
         ws.current.onmessage = (event) => {
           const data = JSON.parse(event.data);
-          console.log(data)
           if(data.type=='delete_message'){
-            console.log('deleting message')
             setMessages(prevMessages => prevMessages.filter((message)=>message.id!=data.message_id))
           }else{
 
@@ -183,7 +179,6 @@ const ChatArea = ({ open, handleOpen }) => {
       } else if (seenWs.current && seenWs.current.readyState === WebSocket.OPEN) {
         seenWs.current.close();
         seenWs.current = null;
-        console.log("WebSocket for seen closed due to tab visibility change");
       }
     };
   

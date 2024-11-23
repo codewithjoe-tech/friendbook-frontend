@@ -13,10 +13,13 @@ const NotificationSlice = createSlice({
     reducers : {
         NotiOpen : (state)=>{
             state.NotificationModalOpen = !state.NotificationModalOpen;
+        },
+        NotiClose : (state)=>{
+            state.NotificationModalOpen = false
         }
     }
 })
 
 
 export default NotificationSlice.reducer
-export const {NotiOpen}  = NotificationSlice.actions
+export const {NotiOpen,NotiClose}  = NotificationSlice.actions

@@ -72,7 +72,7 @@ const ReelsPage = () => {
       if (response.ok) {
         setReels((prevReels) => [...prevReels, ...data.results]);
         setCount((prevCount) => prevCount + data.results.length);
-        setHasMore(!!data.next); // Set to true if there's a next page
+        setHasMore(!!data.next); 
         setUrl(data.next);
       } else {
         console.error('Failed to fetch reels');
@@ -80,7 +80,6 @@ const ReelsPage = () => {
     } catch (error) {
       console.error('Error fetching reels:', error);
 
-      // Use dummy reels for testing when API fails
       if (reels.length === 0) {
         setReels(dummyReels);
         setCount(dummyReels.length);

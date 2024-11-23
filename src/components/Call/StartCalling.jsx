@@ -13,10 +13,6 @@ const StartCalling = () => {
     const dispatch = useDispatch()
 
 
-    useEffect(() => {
-      console.log(receiver)
-    }, [receiver])
-    
     return (
         <div className="flex items-center justify-between w-full max-w-xs p-4 mb-4 fixed top-10 right-7 z-50 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 text-green-500">
             <Avatar className="w-10 h-10">

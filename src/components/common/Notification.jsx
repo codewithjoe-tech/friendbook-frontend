@@ -5,10 +5,11 @@ import { Link, useLocation } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import ReelViewModal from '../Profile/Reels/ReelViewModal';
 import PostViewModal from '../Profile/PostViewModal';
-import { BookCheck, CheckIcon, X } from 'lucide-react';
+import { CheckIcon, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSelector, useDispatch } from 'react-redux';
-import { NotiOpen } from '@/redux/Slices/NotificationSlice';
+import { NotiClose, NotiOpen } from '@/redux/Slices/NotificationSlice';
+import { useNavigate } from 'react-router-dom';
 
 const Notification = () => {
   const [notificationsData, setNotificationsData] = useState([]);
@@ -23,41 +24,35 @@ const Notification = () => {
   const [sectionTab, setSectionTab] = useState(null);
   const { NotificationModalOpen } = useSelector(state => state.notification);
   const dispatch = useDispatch();
+  const navigate = useNavigate()
 
   const onClose = () => {
-    dispatch(NotiOpen());
+    if (NotificationModalOpen) {
+      dispatch(NotiOpen()); 
+    }
   };
 
   useEffect(() => {
-    if(NotificationModalOpen){
-      dispatch(NotiOpen())
-    }
-  }, [location])
-  
-
-
+    dispatch(NotiClose())
+  }, [location]); 
 
   const fetchNotifications = async () => {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/get-notification`, {
-      headers: { 'Authorization': 'Bearer ' + access }
+      headers: { 'Authorization': 'Bearer ' + access },
     });
     const data = await response.json();
     if (response.ok) {
       setNotificationsData(data);
-      console.log(data);
     }
   };
 
   useEffect(() => {
-    if (NotificationModalOpen) fetchNotifications();
+    if (NotificationModalOpen) {
+      fetchNotifications();
+    }
   }, [NotificationModalOpen]);
 
-  useEffect(() => {
-    if (NotificationModalOpen) onClose();
-  }, [location]);
-
   const toggleModalWithId = (id, contentType, commentId, reply) => {
-    console.log(id, contentType);
     if (contentType.startsWith('reel')) {
       setReelId(id);
     } else {
@@ -87,7 +82,7 @@ const Notification = () => {
       setPostModalOpen(true);
     }
   }, [postId]);
-  
+
   useEffect(() => {
     if (reelId) {
       setReelsModalOpen(true);
@@ -96,7 +91,7 @@ const Notification = () => {
 
   const acceptReq = async (id, nid) => {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/follow-accept/${id}/${nid}`, {
-      headers: { 'Authorization': 'Bearer ' + access }
+      headers: { 'Authorization': 'Bearer ' + access },
     });
     if (response.ok) {
       setNotificationsData(
@@ -104,8 +99,8 @@ const Notification = () => {
           notification.object_id === id
             ? {
                 ...notification,
-                content: "Follow request accepted",
-                content_object: { ...notification.content_object, accepted: true }
+                content: 'Follow request accepted',
+                content_object: { ...notification.content_object, accepted: true },
               }
             : notification
         )
@@ -115,7 +110,7 @@ const Notification = () => {
 
   const rejectReq = async (id, nid) => {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/follow-accept/${id}/${nid}`, {
-      headers: { 'Authorization': 'Bearer ' + access }
+      headers: { 'Authorization': 'Bearer ' + access },
     });
     if (response.ok) {
       setNotificationsData(
@@ -123,8 +118,8 @@ const Notification = () => {
           notification.object_id === id
             ? {
                 ...notification,
-                content: "Follow request rejected",
-                content_object: { ...notification.content_object, accepted: true }
+                content: 'Follow request rejected',
+                content_object: { ...notification.content_object, accepted: true },
               }
             : notification
         )
@@ -138,25 +133,50 @@ const Notification = () => {
         <SheetHeader>
           <SheetTitle>Notification</SheetTitle>
         </SheetHeader>
-        <div className='flex flex-col gap-5 mt-8 h-[55rem] overflow-auto scrollbar-none mb-2'>
+        <div className="flex flex-col gap-5 mt-8 h-[55rem] overflow-auto scrollbar-none mb-2">
           {notificationsData.length > 0 ? (
-            notificationsData.map((item) => (
-              (item.content_type === 'reels' || item.content_type === 'reellike' || item.content_type === 'post' || item.content_type === "like" || item.content_type === "comment" || item.content_type === "reelcomment" || item.content_type === 'follow') ? (
-                <div key={item.id} className='flex w-full justify-between items-center px-2 py-3 rounded-sm hover:bg-muted/50 cursor-pointer'>
+            notificationsData.map((item) =>
+              ['reels', 'reellike', 'post', 'like', 'comment', 'reelcomment', 'follow'].includes(item.content_type) ? (
+                <div
+                  key={item.id}
+                  className="flex w-full justify-between items-center px-2 py-3 rounded-sm hover:bg-muted/50 cursor-pointer"
+                >
                   <Link to={`/profile/${item?.content_object?.username}`}>
-                    <div className='flex gap-3 items-center'>
+                    <div className="flex gap-3 items-center">
                       <Avatar>
-                        <AvatarImage className="object-cover" src={item?.content_object?.profile_picture} alt={item.sender_username || 'User Avatar'} />
+                        <AvatarImage
+                          className="object-cover"
+                          src={item?.content_object?.profile_picture}
+                          alt={item.sender_username || 'User Avatar'}
+                        />
                         <AvatarFallback>{item?.content_object?.username.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <p>{item.content_type === "reels" || item.content_type === 'post' ? (<span className='font-semibold'>Post </span>) : item.content_type === "like" || item.content_type === "reellike" ? (<span className='font-semibold'>Like </span>) : item.content_type === 'follow' ? (<span className='font-semibold'>{item?.content_object?.accepted ? "Follower" : "Request"} </span>) : (<span className='font-semibold'>Comment </span>)}: {item?.content}  {item.created_at && <span className='text-sm text-muted-foreground/80 '>&nbsp; -   &nbsp;{timeAgo(item?.created_at)} </span>}</p>
+                      <p>
+                        {item.content_type === 'reels' || item.content_type === 'post' ? (
+                          <span className="font-semibold">Post </span>
+                        ) : item.content_type === 'like' || item.content_type === 'reellike' ? (
+                          <span className="font-semibold">Like </span>
+                        ) : item.content_type === 'follow' ? (
+                          <span className="font-semibold">
+                            {item?.content_object?.accepted ? 'Follower' : 'Request'}{' '}
+                          </span>
+                        ) : (
+                          <span className="font-semibold">Comment </span>
+                        )}
+                        : {item?.content}{' '}
+                        {item.created_at && (
+                          <span className="text-sm text-muted-foreground/80">
+                            &nbsp; - &nbsp;{timeAgo(item?.created_at)}{' '}
+                          </span>
+                        )}
+                      </p>
                     </div>
                   </Link>
                   {item?.content_type !== 'follow' && (
                     <img
                       onClick={() =>
                         toggleModalWithId(
-                          item?.content_type?.startsWith("reel")
+                          item?.content_type?.startsWith('reel')
                             ? item?.content_object?.ReelId
                             : item?.content_object?.postId,
                           item?.content_type,
@@ -164,27 +184,57 @@ const Notification = () => {
                           item?.content_object?.reply
                         )
                       }
-                      src={item?.content_type?.startsWith("reel") ? item?.content_object?.thumbnail : item?.content_object?.image}
+                      src={
+                        item?.content_type?.startsWith('reel')
+                          ? item?.content_object?.thumbnail
+                          : item?.content_object?.image
+                      }
                       className="h-10 w-10 object-cover"
                       alt=""
                     />
                   )}
                   {item?.content_type === 'follow' && !item?.content_object?.accepted && (
-                    <div className='flex gap-1'>
-                      <Button onClick={() => acceptReq(item?.content_object?.id, item?.id)} size="sm" className='text-white 600 px-3 bg-blue-600 hover:bg-blue-700 py-2 rounded-sm'><CheckIcon /></Button>
-                      <Button onClick={() => rejectReq(item?.content_object?.id, item?.id)} size="sm" className='text-white 600 px-3 py-2 rounded-sm ml-3'><X /></Button>
+                    <div className="flex gap-1">
+                      <Button
+                        onClick={() => acceptReq(item?.content_object?.id, item?.id)}
+                        size="sm"
+                        className="text-white 600 px-3 bg-blue-600 hover:bg-blue-700 py-2 rounded-sm"
+                      >
+                        <CheckIcon />
+                      </Button>
+                      <Button
+                        onClick={() => rejectReq(item?.content_object?.id, item?.id)}
+                        size="sm"
+                        className="text-white 600 px-3 py-2 rounded-sm ml-3"
+                      >
+                        <X />
+                      </Button>
                     </div>
                   )}
                 </div>
               ) : null
-            ))
+            )
           ) : (
-            <p className='text-center text-muted-foreground/60'>No Notification found</p>
+            <p className="text-center text-muted-foreground/60">No Notification found</p>
           )}
         </div>
       </SheetContent>
-      <ReelViewModal open={reelsModalOpen} reelId={reelId} onClose={closeReelsModal} commentId={commentId} replyStatus={replyStatus} selectedTab={sectionTab} />
-      <PostViewModal open={postModalOpen} postid={postId} onClose={closeReelsModal} commentId={commentId} replyStatus={replyStatus} selectedTab={sectionTab} />
+      <ReelViewModal
+        open={reelsModalOpen}
+        reelId={reelId}
+        onClose={closeReelsModal}
+        commentId={commentId}
+        replyStatus={replyStatus}
+        selectedTab={sectionTab}
+      />
+      <PostViewModal
+        open={postModalOpen}
+        postid={postId}
+        onClose={closeReelsModal}
+        commentId={commentId}
+        replyStatus={replyStatus}
+        selectedTab={sectionTab}
+      />
     </Sheet>
   );
 };

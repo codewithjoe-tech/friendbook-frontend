@@ -42,7 +42,6 @@ const Signup = ({ setIsLogin }) => {
         const res = await response.json();
         setLoading(false)
         if (response.ok) {
-            console.log("Working");
             dispatch(showToast({
                 message: 'Signup successful!',
                 type: 's',

@@ -62,7 +62,6 @@ const HomePage = () => {
 
   const fetchPost = async () => {
     if (!url) return;
-    console.log(url);
     try {
       const response = await fetch(url, {
         method: "GET",
@@ -71,7 +70,6 @@ const HomePage = () => {
         },
       });
       const data = await response.json();
-      console.log("Data : " + data);
       if (response.ok) {
         setPosts((prevPosts) => [...prevPosts, ...data.results]);
         setCount((prevCount) => prevCount + data.results.length);

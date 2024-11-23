@@ -16,7 +16,6 @@ const GoogleAuth = () => {
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true);
-    console.log(error,code,state)
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -37,12 +36,10 @@ const GoogleAuth = () => {
                     navigate('/');
                 } else {
                     dispatch(showToast({ message: "Account Banned",type:'e'}))
-                    console.error('Error during authentication', data);
                     navigate('/login');
                 }
             } catch (err) {
                
-                console.error('Error fetching user data', err);
                 navigate('/login');
             } finally {
                 setLoading(false);
@@ -50,7 +47,6 @@ const GoogleAuth = () => {
         };
 
         if (error) {
-            console.error('Authentication error:', error);
             navigate('/login');
         } else if (code && state) {
             fetchUser();

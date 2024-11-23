@@ -14,7 +14,6 @@ const CheckAdmin = ({children}) => {
         navigate('/')
         dispatch(showToast({message: 'Unauthorized access', type: 'e'}))
       }
-      console.log(user)
     }, [user])
     
   return (

@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Outlet } from 'react-router-dom'
 
 const MainLayout = () => {
+    const { NotificationModalOpen } = useSelector(state => state.notification);
     const postModalOpen = useSelector((state) => state.post.postModalOpen)
     const dispatch = useDispatch()
     const ws = useRef(null)

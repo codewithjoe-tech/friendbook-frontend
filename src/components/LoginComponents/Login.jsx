@@ -53,7 +53,6 @@ const Login = () => {
                
               }))
             }
-        console.log(data)
         return data
     }
 
@@ -69,7 +68,6 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = await loginUser();
-    console.log(data)
     
 
  

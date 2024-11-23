@@ -15,7 +15,6 @@ const VerifyEmail = () => {
         try {
           const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/verify/${uid}/${token}`)
           const res = await response.json()
-          console.log(res)
           if (response.ok) {
             dispatch(showToast({
                 message:"Email verified successfully",

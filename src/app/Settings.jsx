@@ -118,7 +118,6 @@ const Settings = () => {
             });
     
             const res = await response.json();
-            console.log(res)
             if (!response.ok) {
                 throw new Error(res.message);
             } else {

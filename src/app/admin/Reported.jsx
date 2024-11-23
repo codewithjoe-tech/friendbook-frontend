@@ -47,7 +47,6 @@ const Reported = () => {
     const handlePostModalOpen = (id, comment, isReply) => {
         setIsReply(isReply)
         setPostId(id)
-        console.log(isReply)
 
         setPostModalOpen(!postModalOpen)
         setCommentId(comment)
@@ -63,7 +62,6 @@ const Reported = () => {
             }
         })
         const data = await response.json()
-        console.log(data)
         if (response.ok) {
             setReports(data)
         }
@@ -83,7 +81,6 @@ const Reported = () => {
             }
         })
         const data = await response.json()
-        console.log(data)
         if (response.ok) {
             setReason(data)
         }
@@ -101,7 +98,6 @@ const Reported = () => {
             }
         )
         const data = await response.json()
-        console.log(data)
         if (response.ok){
             setReports(reports.filter((report)=>report.id!==id))
         }
@@ -125,7 +121,6 @@ const Reported = () => {
             }
         )
         const data = await response.json()
-        console.log(data)
         if (response.ok){
             setReports(reports.filter((report)=>report.id!==id))
         }

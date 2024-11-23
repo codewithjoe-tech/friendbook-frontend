@@ -45,8 +45,7 @@ const Comments = ({ postId, onClose , replyStatus , selectedComment }) => {
 
 
   const handleReportValueChange = (e) => {
-    console.log(reportId)
-    console.log(reportReason)
+ 
     setReportReason(e.target.value)
   }
 
@@ -77,7 +76,6 @@ const Comments = ({ postId, onClose , replyStatus , selectedComment }) => {
       }),
     })
     const res = await response.json()
-    console.log(res)
     if(response.status==201) {
       dispatch(showToast({
         message: 'Report submitted successfully',
@@ -109,7 +107,6 @@ const Comments = ({ postId, onClose , replyStatus , selectedComment }) => {
 
   const fetchComments = async () => {
     let url = `${commentUrl}`
-    console.log(replyStatus)
     if (selectedComment) {
       url += `&selected_comment=${selectedComment}`;
     }
@@ -124,7 +121,6 @@ const Comments = ({ postId, onClose , replyStatus , selectedComment }) => {
       });
 
       const data = await response.json();
-      console.log(data);
       
 
       if (response.ok) {

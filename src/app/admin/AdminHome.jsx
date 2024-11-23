@@ -21,7 +21,6 @@ const AdminHome = () => {
                 }
             });
             const data = await response.json();
-            console.log(data)
             if (response.ok) {
                 setUsers(data);
             } else {
@@ -32,6 +31,7 @@ const AdminHome = () => {
     }, [dispatch]);
 
     const deleteUser = async (id) => {
+        nProgress.start()
         const access = getCookie('accessToken');
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/delete/${id}`, {
             method: 'DELETE',
@@ -40,11 +40,11 @@ const AdminHome = () => {
             }
         });
         const data = await response.json();
-        console.log(data);
         if (response.ok) {
             setUsers(data.users);
             dispatch(showToast({ type: 's', message: 'User deleted successfully' }));
         }
+        nProgress.done()
     };
 
 
@@ -58,7 +58,6 @@ const AdminHome = () => {
             }
         });
         const data = await response.json();
-        console.log(data);
         if (response.ok) {
             setUsers(data.users);
             dispatch(showToast({ type: 's', message: 'User is '+message }));

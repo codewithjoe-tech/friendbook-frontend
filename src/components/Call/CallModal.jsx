@@ -41,12 +41,9 @@ const CallModal = () => {
     );
 
     callWs.current.onopen = () => {
-      console.log("WebSocket connected");
-      // Send queued messages
       while (messageQueue.current.length > 0) {
         callWs.current.send(messageQueue.current.shift());
       }
-      // Send any pending ICE candidates
       while (iceCandidatesQueue.current.length > 0) {
         const candidate = iceCandidatesQueue.current.shift();
         sendIceCandidate(candidate);
@@ -176,7 +173,7 @@ const CallModal = () => {
       }
 
       if (callWs.current) {
-        callWs.current.onclose = () => console.log("WebSocket closed");
+        callWs.current.onclose = () => {}
         callWs.current.close();
         callWs.current = null;
       }
