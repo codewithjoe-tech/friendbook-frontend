@@ -28,6 +28,15 @@ const Notification = () => {
     dispatch(NotiOpen());
   };
 
+  useEffect(() => {
+    if(NotificationModalOpen){
+      dispatch(NotiOpen())
+    }
+  }, [location])
+  
+
+
+
   const fetchNotifications = async () => {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/get-notification`, {
       headers: { 'Authorization': 'Bearer ' + access }

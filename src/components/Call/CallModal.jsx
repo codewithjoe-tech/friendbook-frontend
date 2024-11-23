@@ -23,7 +23,8 @@ const CallModal = () => {
   const peerConnection = useRef(null);
   const iceCandidatesQueue = useRef([]);
   const callWs = useRef(null);
-  const endButtonRef = useRef()
+  const messageQueue = useRef([]);
+  const endButtonRef = useRef();
 
   useEffect(() => {
     if (isInCall) {
@@ -40,6 +41,12 @@ const CallModal = () => {
     );
 
     callWs.current.onopen = () => {
+      console.log("WebSocket connected");
+      // Send queued messages
+      while (messageQueue.current.length > 0) {
+        callWs.current.send(messageQueue.current.shift());
+      }
+      // Send any pending ICE candidates
       while (iceCandidatesQueue.current.length > 0) {
         const candidate = iceCandidatesQueue.current.shift();
         sendIceCandidate(candidate);
@@ -77,108 +84,109 @@ const CallModal = () => {
     if (caller === user.username) {
       const offer = await peerConnection.current.createOffer();
       await peerConnection.current.setLocalDescription(offer);
-      callWs.current.send(JSON.stringify({ action: 'offer', offer, target_username: receiver }));
+      sendMessage({
+        action: 'offer',
+        offer,
+        target_username: receiver,
+      });
+    }
+  };
+
+  const sendMessage = (message) => {
+    const serializedMessage = JSON.stringify(message);
+    if (callWs.current && callWs.current.readyState === WebSocket.OPEN) {
+      callWs.current.send(serializedMessage);
+    } else {
+      messageQueue.current.push(serializedMessage);
     }
   };
 
   const sendIceCandidate = (candidate) => {
-    if (callWs.current.readyState === WebSocket.OPEN) {
-      callWs.current.send(JSON.stringify({
-        action: 'ice_candidate',
-        type: 'ICE_CANDIDATE',
-        candidate,
-        target_username: caller ? caller : receiver,
-      }));
-    }
+    sendMessage({
+      action: 'ice_candidate',
+      type: 'ICE_CANDIDATE',
+      candidate,
+      target_username: caller ? caller : receiver,
+    });
   };
 
   const handleSignalingData = async (data) => {
-    if (data.type === 'OFFER') {
-      await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.offer));
-      const answer = await peerConnection.current.createAnswer();
-      await peerConnection.current.setLocalDescription(answer);
-      callWs.current.send(JSON.stringify({ action: 'answer', answer, target_username: caller }));
-  
-      while (iceCandidatesQueue.current.length > 0) {
-        const candidate = iceCandidatesQueue.current.shift();
-        await peerConnection.current.addIceCandidate(candidate);
+    try {
+      if (data.type === 'OFFER') {
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.offer));
+        const answer = await peerConnection.current.createAnswer();
+        await peerConnection.current.setLocalDescription(answer);
+        sendMessage({ action: 'answer', answer, target_username: caller });
+
+        while (iceCandidatesQueue.current.length > 0) {
+          const candidate = iceCandidatesQueue.current.shift();
+          await peerConnection.current.addIceCandidate(candidate);
+        }
+
+      } else if (data.type === 'ANSWER') {
+        await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+
+        while (iceCandidatesQueue.current.length > 0) {
+          const candidate = iceCandidatesQueue.current.shift();
+          await peerConnection.current.addIceCandidate(candidate);
+        }
+
+      } else if (data.type === 'ICE_CANDIDATE') {
+        const candidate = new RTCIceCandidate(data.candidate);
+        if (peerConnection.current.remoteDescription) {
+          await peerConnection.current.addIceCandidate(candidate);
+        } else {
+          iceCandidatesQueue.current.push(candidate);
+        }
+
+      } else if (data.type === 'END_CALL') {
+        endButtonRef.current.click();
       }
-  
-    } else if (data.type === 'ANSWER') {
-      await peerConnection.current.setRemoteDescription(new RTCSessionDescription(data.answer));
-  
-      while (iceCandidatesQueue.current.length > 0) {
-        const candidate = iceCandidatesQueue.current.shift();
-        await peerConnection.current.addIceCandidate(candidate);
-      }
-  
-    } else if (data.type === 'ICE_CANDIDATE') {
-      const candidate = new RTCIceCandidate(data.candidate);
-      if (peerConnection.current.remoteDescription) {
-        await peerConnection.current.addIceCandidate(candidate);
-      } else {
-        iceCandidatesQueue.current.push(candidate);
-      }
-  
-    } else if (data.type === 'END_CALL') {
-      endButtonRef.current.click()
-      // endVideoCall();
+    } catch (error) {
+      console.error("Error handling signaling data:", error);
     }
   };
 
   const endVideoCall = () => {
-    if (callWs.current && callWs.current.readyState === WebSocket.OPEN) {
-      callWs.current.send(JSON.stringify({
-        action: "end_call",
-        type: "END_CALL",
-        target_username: user?.username === caller ? receiver : caller,
-      }));
-    }
+    try {
+      if (callWs.current && callWs.current.readyState === WebSocket.OPEN) {
+        sendMessage({
+          action: "end_call",
+          type: "END_CALL",
+          target_username: user?.username === caller ? receiver : caller,
+        });
+      }
 
-    
-    if (remoteStream) {
-      remoteStream.getTracks().forEach((track) => track.stop());
-      setRemoteStream(null);
-      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
-    }
-    if (localStream) {
+      if (remoteStream) {
+        remoteStream.getTracks().forEach((track) => track.stop());
+        setRemoteStream(null);
+        if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+      }
+      if (localStream) {
+        localStream.getTracks().forEach((track) => track.stop());
+        setLocalStream(null);
+        if (localVideoRef.current) localVideoRef.current.srcObject = null;
+      }
 
-      console.log('cleaning localstream')
-      localStream.getTracks().forEach((track) => track.stop());
-      setLocalStream(null);
-      if (localVideoRef.current) localVideoRef.current.srcObject = null;
-    }
+      if (peerConnection.current) {
+        peerConnection.current.ontrack = null;
+        peerConnection.current.onicecandidate = null;
+        peerConnection.current.close();
+        peerConnection.current = null;
+      }
 
-    if (peerConnection.current) {
-      peerConnection.current.ontrack = null;
-      peerConnection.current.onicecandidate = null;
-      peerConnection.current.close();
-      peerConnection.current = null;
-    }
+      if (callWs.current) {
+        callWs.current.onclose = () => console.log("WebSocket closed");
+        callWs.current.close();
+        callWs.current = null;
+      }
 
-    if (callWs.current) {
-      callWs.current.onclose = () => console.log("WebSocket closed");
-      callWs.current.close();
-      callWs.current = null;
+      dispatch(endCall());
+    } catch (error) {
+      console.error("Error ending video call:", error);
     }
-
-    dispatch(endCall());
   };
-  useEffect(() => {
-  //   console.log(localStream)
-  // if(!isInCall){
-  //   if (localStream) {
 
-  //     console.log('cleaning localstream')
-  //     localStream.getTracks().forEach((track) => track.stop());
-  //     setLocalStream(null);
-  //     if (localVideoRef.current) localVideoRef.current.srcObject = null;
-  //   }
-  // }
-  console.log(localStream)
-  }, [callWs.current])
-  
-  
   return (
     <Dialog open={isInCall}>
       <DialogContent className="flex flex-col items-center bg-gray-900 text-white p-6 rounded-lg">
