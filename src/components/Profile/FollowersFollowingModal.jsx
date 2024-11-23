@@ -148,7 +148,7 @@ const FollowersFollowingModal = ({ open, onClose, url }) => {
               loading && <SmallSpinner size='md' />
             }
 
-            {
+            {!loading && 
               users.length <1 && <p className='text-muted-foreground/70 text-xs'>No Users</p>
             }
           </DialogDescription>
