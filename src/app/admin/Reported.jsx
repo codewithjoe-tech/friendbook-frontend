@@ -24,6 +24,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import PostViewModal from '@/components/Profile/PostViewModal';
+import SmallSpinner from '@/components/common/SmallSpinner';
 
 
 const Reported = () => {
@@ -38,6 +39,7 @@ const Reported = () => {
     const [reason, setReason] = useState([])
     const [open, setOpen] = useState(false)
     const dispatch = useDispatch()
+    const [loading, setloading] = useState(false)
 
 
 
@@ -55,6 +57,7 @@ const Reported = () => {
     }
 
     const fetchReports = async () => {
+        setloading(true)
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/reported/${selectValue}`, {
             method: 'GET',
             headers: {
@@ -65,7 +68,7 @@ const Reported = () => {
         if (response.ok) {
             setReports(data)
         }
-
+        setloading(false)
     }
 
     const filteredReports = () => {
@@ -215,13 +218,22 @@ const Reported = () => {
                             </td>
                         </tr>
                     ))}
-                    {filteredReports().length === 0 && (
+                    {!loading && filteredReports().length === 0 && (
                         <tr>
                             <td colSpan="6" className="py-4 text-center border">
                                 No reports found.
                             </td>
                         </tr>
                     )}
+                 {
+                        loading &&  (
+                            <tr>
+                            <td colSpan="6" className="py-4 text-center border">
+                               <SmallSpinner />
+                            </td>
+                        </tr>
+                        )
+                    }
                 </tbody>
             </table>
 

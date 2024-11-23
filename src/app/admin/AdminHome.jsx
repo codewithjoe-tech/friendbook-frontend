@@ -1,3 +1,4 @@
+import SmallSpinner from '@/components/common/SmallSpinner';
 import { showToast } from '@/redux/Slices/ToastSlice';
 import { getCookie } from '@/utils';
 import { CheckCircle } from 'lucide-react';
@@ -11,9 +12,11 @@ const AdminHome = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [users, setUsers] = useState([]);
     const dispatch = useDispatch();
+    const [loading, setloading] = useState(false)
 
     useEffect(() => {
         const fetchAllUsers = async () => {
+            setloading(true)
             const access = getCookie('accessToken');
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/get/all-users`, {
                 headers: {
@@ -26,6 +29,7 @@ const AdminHome = () => {
             } else {
                 dispatch(showToast({ type: 'e', message: data.message }));
             }
+            setloading(false)
         };
         fetchAllUsers();
     }, [dispatch]);
@@ -127,13 +131,22 @@ const AdminHome = () => {
                             </td>
                         </tr>
                     ))}
-                    {filteredUsers.length === 0 && (
+                    {!loading && filteredUsers.length === 0 && (
                         <tr>
                             <td colSpan="5" className="py-4 text-center border">
                                 No users found.
                             </td>
                         </tr>
                     )}
+                    {
+                        loading &&  (
+                            <tr>
+                            <td colSpan="5" className="py-4 text-center border">
+                               <SmallSpinner />
+                            </td>
+                        </tr>
+                        )
+                    }
                 </tbody>
             </table>
         </section>
