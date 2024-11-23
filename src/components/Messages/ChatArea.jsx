@@ -287,7 +287,7 @@ const ChatArea = ({ open, handleOpen }) => {
             </div>
           </div>
 
-          <div className="flex-1 p-6 space-y-4 overflow-y-auto">
+          <div className="flex-1 p-6 space-y-4 overflow-y-auto scrollbar-none">
             {messages &&
               messages.map((message, index) => (
                 <div key={index}>
@@ -378,7 +378,7 @@ const ChatArea = ({ open, handleOpen }) => {
                         </div>
                         <Avatar>
                           <AvatarImage className="object-cover" src={message?.profile_picture} />
-                          <AvatarFallback>CN</AvatarFallback>
+                          <AvatarFallback>J</AvatarFallback>
                         </Avatar>
                         {deleteMessage && deleteMessage==message.id && (
                           <div
