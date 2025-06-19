@@ -188,7 +188,7 @@ const UploadModal = ({ isOpen, onClose }) => {
                     <div className="p-4 border-t border text-right">
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || !selectedFile}
                             className="px-4 py-2 text-blue-600 rounded-md hover:bg-background transition"
                         >
                             {loading ? (
