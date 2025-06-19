@@ -312,7 +312,7 @@ const ChatArea = ({ open, handleOpen }) => {
                           )}
                           {message.content_type === "imagemessage" && (
                             <img
-                              src={`${import.meta.env.VITE_API_URL}message?.content_object?.image`}
+                              src={`${import.meta.env.VITE_API_URL}${message?.content_object?.image}`}
                               alt="Image"
                               className="max-w-xs"
                             />
