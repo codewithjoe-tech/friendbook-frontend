@@ -184,11 +184,11 @@ const Notification = () => {
                           item?.content_object?.reply
                         )
                       }
-                      src={import.meta.env.VITE_API_URL + 
-                        item?.content_type?.startsWith('reel')
+                      src={`${import.meta.env.VITE_API_URL}
+                       ${ item?.content_type?.startsWith('reel')
                           ? item?.content_object?.thumbnail
-                          : item?.content_object?.image
-                      }
+                          : item?.content_object?.image}
+                      `}
                       className="h-10 w-10 object-cover"
                       alt=""
                     />
