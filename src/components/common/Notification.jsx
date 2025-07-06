@@ -184,8 +184,7 @@ const Notification = () => {
                           item?.content_object?.reply
                         )
                       }
-                      src={`${import.meta.env.VITE_API_URL}
-                       ${ item?.content_type?.startsWith('reel')
+                      src={`${import.meta.env.VITE_API_URL}${ item?.content_type?.startsWith('reel')
                           ? item?.content_object?.thumbnail
                           : item?.content_object?.image}
                       `}
