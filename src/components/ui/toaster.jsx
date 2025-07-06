@@ -25,7 +25,7 @@ export function Toaster() {
             <div className="flex items-center gap-4">
               <Avatar className="w-10 h-10 flex ">
                 {image ? (
-                  <AvatarImage src={image.replace(`${import.meta.env.VITE_API_URL}`,"")} alt={username} />
+                  <AvatarImage src={import.meta.env.VITE_API_URL +image} alt={username} />
                 ) : (
                   <AvatarFallback>{username?.charAt(0).toUpperCase()}</AvatarFallback>
                 )}
